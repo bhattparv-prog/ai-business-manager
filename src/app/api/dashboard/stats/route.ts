@@ -83,7 +83,50 @@ export async function GET(req: Request) {
       include: { assignedTo: { select: { name: true } } },
     });
 
-    // 7. Collection distribution breakdown for THIS user only
+    // 8. If google_sheet_events exists, get sample recent events
+    const sheetCol = collections.find((c) => c.slug === "google_sheet_events");
+    let sheetStats: any = null;
+    let recentSheetEvents: any[] = [];
+
+    if (sheetCol && sheetCol._count.records > 0) {
+      const recentRaw = await prisma.recordItem.findMany({
+        where: { collection: { userId: session.userId, slug: "google_sheet_events" } },
+        take: 6,
+        orderBy: { createdAt: "desc" },
+      });
+
+      recentSheetEvents = recentRaw.map((r) => {
+        try {
+          const item = JSON.parse(r.data);
+          return {
+            id: r.id,
+            timestamp: item.timestamp_ist || item.timestamp || r.createdAt.toISOString(),
+            pagePath: item.page_path || item.pagepath || "/",
+            pageTitle: item.page_title || "Page View",
+            clickedText: item.clicked_text_label || item.clicked_text || item.label || "Live Event",
+            deviceViewport: item.device_viewport || item.device || "Mobile",
+            sessionId: item.session_id || "session",
+          };
+        } catch {
+          return {
+            id: r.id,
+            timestamp: r.createdAt.toISOString(),
+            pagePath: "/",
+            pageTitle: "Event",
+            clickedText: "Action",
+            deviceViewport: "Mobile",
+            sessionId: "session",
+          };
+        }
+      });
+
+      sheetStats = {
+        totalEvents: sheetCol._count.records,
+        hasData: true,
+      };
+    }
+
+    // Collection distribution breakdown for THIS user only
     const collectionBreakdown = collections.map((c) => ({
       name: c.name,
       slug: c.slug,
@@ -92,6 +135,11 @@ export async function GET(req: Request) {
     }));
 
     return NextResponse.json({
+      user: {
+        name: session.name || "Business Owner",
+        email: session.email,
+        role: session.role,
+      },
       metrics: {
         totalRecords,
         allTimeRecords,
@@ -106,6 +154,8 @@ export async function GET(req: Request) {
       dataSources,
       upcomingTasks,
       recentActivity,
+      sheetStats,
+      recentSheetEvents,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 401 });
