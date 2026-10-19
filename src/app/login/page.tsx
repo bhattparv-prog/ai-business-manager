@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Sparkles, Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Lock, Mail, ArrowRight, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -61,11 +62,18 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50/50 via-slate-50 to-amber-50/40 flex items-center justify-center p-4 selection:bg-orange-500/20">
       <div className="w-full max-w-md">
-        {/* Brand Card */}
+        {/* Brand Card with Custom Logo */}
         <div className="bg-white border border-orange-100/80 rounded-3xl p-6 sm:p-8 shadow-xl shadow-orange-500/5">
           <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/25 mx-auto mb-4">
-              <Sparkles className="w-7 h-7 text-white" />
+            <div className="w-20 h-20 rounded-3xl bg-orange-50/80 border border-orange-200/80 p-2 flex items-center justify-center shadow-lg shadow-orange-500/10 mx-auto mb-4">
+              <Image
+                src="/logo.png"
+                alt="AI Business Manager"
+                width={70}
+                height={70}
+                className="rounded-2xl object-contain"
+                priority
+              />
             </div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
               {isSetup ? "Setup Business Manager" : "AI Business Manager"}

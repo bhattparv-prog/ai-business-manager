@@ -184,8 +184,12 @@ export default function DashboardClient() {
       {/* AI Assistant Warm Callout Banner */}
       <div className="rounded-2xl p-5 bg-gradient-to-r from-orange-500 via-orange-500 to-amber-500 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-lg shadow-orange-500/20">
         <div className="flex items-start sm:items-center gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/30">
-            <Sparkles className="w-5 h-5 text-white" />
+          <div className="w-12 h-12 rounded-2xl bg-white p-1 flex items-center justify-center shrink-0 shadow-md">
+            <img
+              src="/logo.png"
+              alt="AI Assistant"
+              className="w-10 h-10 object-contain rounded-xl"
+            />
           </div>
           <div>
             <h2 className="text-sm font-bold text-white">

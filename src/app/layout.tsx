@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: "AI Business Manager",
   description: "Personal AI Business Manager & Real-Time Automation Assistant",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/icons/icon-192x192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -29,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/favicon.png" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
       <body className="antialiased selection:bg-orange-500/20 selection:text-orange-700 min-h-screen flex flex-col bg-[#f8fafc] text-slate-800">

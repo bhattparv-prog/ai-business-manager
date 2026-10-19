@@ -117,8 +117,8 @@ export default function AssistantClient() {
       {/* Assistant Header */}
       <div className="p-4 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shadow-md shadow-orange-500/20">
-            <Bot className="w-5 h-5 text-white" />
+          <div className="w-11 h-11 rounded-2xl bg-white border border-orange-200/80 p-1 flex items-center justify-center shadow-sm">
+            <img src="/logo.png" alt="AI Assistant" className="w-9 h-9 object-contain rounded-xl" />
           </div>
           <div>
             <h1 className="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -155,13 +155,17 @@ export default function AssistantClient() {
               className={`flex gap-3 max-w-2xl ${isUser ? "ml-auto flex-row-reverse" : ""}`}
             >
               <div
-                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                   isUser
                     ? "bg-slate-800 text-white shadow-sm"
-                    : "bg-gradient-to-tr from-orange-500 to-amber-500 text-white shadow-sm shadow-orange-500/25"
+                    : "bg-white border border-orange-200/80 p-0.5 shadow-sm"
                 }`}
               >
-                {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+                {isUser ? (
+                  <User className="w-4 h-4" />
+                ) : (
+                  <img src="/logo.png" alt="Bot" className="w-7 h-7 object-contain rounded-lg" />
+                )}
               </div>
 
               <div

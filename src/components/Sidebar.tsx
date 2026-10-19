@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -13,7 +14,6 @@ import {
   Users,
   BarChart3,
   Settings,
-  Sparkles,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -44,10 +44,17 @@ export default function Sidebar({ userRole = "OWNER", unreadCount = 0 }: Sidebar
 
   return (
     <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 h-screen sticky top-0 shrink-0 z-30 shadow-[1px_0_4px_rgba(0,0,0,0.02)]">
-      {/* Brand Header */}
-      <div className="p-5 border-b border-slate-100 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shadow-md shadow-orange-500/25">
-          <Sparkles className="w-5 h-5 text-white" />
+      {/* Brand Header with Custom Logo */}
+      <div className="p-4 border-b border-slate-100 flex items-center gap-3">
+        <div className="w-11 h-11 rounded-2xl bg-orange-50 border border-orange-100 p-1 flex items-center justify-center shadow-sm">
+          <Image
+            src="/logo.png"
+            alt="AI Business Manager"
+            width={38}
+            height={38}
+            className="rounded-xl object-contain"
+            priority
+          />
         </div>
         <div>
           <h1 className="font-bold text-slate-900 tracking-tight text-base leading-snug">
