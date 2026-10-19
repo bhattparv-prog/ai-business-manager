@@ -8,10 +8,10 @@ const DEFAULT_SHEET_URL =
 
 export async function GET() {
   try {
-    await requireOwner();
+    const session = await requireOwner();
 
     const dataSource = await prisma.dataSource.findFirst({
-      where: { type: "google_sheets" },
+      where: { userId: session.userId, type: "google_sheets" },
       include: {
         history: {
           take: 5,
@@ -20,9 +20,13 @@ export async function GET() {
       },
     });
 
-    // Also get record count from the google_sheet_events collection if it exists
     const collection = await prisma.collectionDefinition.findUnique({
-      where: { slug: "google_sheet_events" },
+      where: {
+        userId_slug: {
+          userId: session.userId,
+          slug: "google_sheet_events",
+        },
+      },
       include: {
         _count: {
           select: { records: true },

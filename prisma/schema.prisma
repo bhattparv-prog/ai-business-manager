@@ -12,7 +12,7 @@ model User {
   email        String             @unique
   passwordHash String
   name         String
-  role         String             @default("EMPLOYEE") // "OWNER" | "EMPLOYEE"
+  role         String             @default("OWNER") // Each user is an OWNER of their business workspace
   active       Boolean            @default(true)
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
@@ -21,8 +21,12 @@ model User {
   notificationsList Notification[]
   tasks        Task[]             @relation("AssignedTasks")
   createdTasks Task[]             @relation("CreatedTasks")
+  workspaceTasks Task[]           @relation("WorkspaceTasks")
   chatSessions AIChatSession[]
   auditLogs    AuditLog[]
+  collections  CollectionDefinition[]
+  dataSources  DataSource[]
+  automationRules AutomationRule[]
 }
 
 model Invitation {
@@ -37,16 +41,20 @@ model Invitation {
 
 model CollectionDefinition {
   id          String            @id @default(cuid())
+  userId      String            // Isolated per user/business owner
   name        String
-  slug        String            @unique
+  slug        String
   description String?
   icon        String            @default("Folder")
   isSystem    Boolean           @default(false)
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   fields      FieldDefinition[]
   records     RecordItem[]
+
+  @@unique([userId, slug])
 }
 
 model FieldDefinition {
@@ -79,6 +87,7 @@ model RecordItem {
 
 model Task {
   id              String    @id @default(cuid())
+  userId          String    // Scoped to the business owner
   title           String
   description     String?
   status          String    @default("pending") // "pending" | "in_progress" | "completed" | "cancelled"
@@ -90,13 +99,14 @@ model Task {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  workspaceOwner  User      @relation("WorkspaceTasks", fields: [userId], references: [id], onDelete: Cascade)
   assignedTo      User?     @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
   createdBy       User?     @relation("CreatedTasks", fields: [createdById], references: [id], onDelete: SetNull)
 }
 
 model Notification {
   id        String   @id @default(cuid())
-  userId    String?  // null means broadcast to all users
+  userId    String?  // Scoped to user
   title     String
   message   String
   type      String   @default("info") // "info" | "warning" | "success" | "alert"
@@ -121,6 +131,7 @@ model PushSubscription {
 
 model DataSource {
   id           String        @id @default(cuid())
+  userId       String        // Isolated per user/business owner
   name         String
   type         String        // "google_sheets" | "csv"
   config       String        // JSON configuration
@@ -130,6 +141,7 @@ model DataSource {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   history      SyncHistory[]
 }
 
@@ -148,6 +160,7 @@ model SyncHistory {
 
 model AutomationRule {
   id              String          @id @default(cuid())
+  userId          String          // Isolated per user/business owner
   name            String
   triggerType     String          // "new_record" | "task_due" | "record_threshold"
   triggerConfig   String          // JSON
@@ -158,6 +171,7 @@ model AutomationRule {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   logs            AutomationLog[]
 }
 

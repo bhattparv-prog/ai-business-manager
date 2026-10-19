@@ -8,11 +8,16 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    await requireAuth();
+    const session = await requireAuth();
     const { slug } = await params;
 
     const collection = await prisma.collectionDefinition.findUnique({
-      where: { slug },
+      where: {
+        userId_slug: {
+          userId: session.userId,
+          slug,
+        },
+      },
       include: {
         fields: {
           orderBy: { orderIndex: "asc" },
@@ -21,7 +26,7 @@ export async function GET(
     });
 
     if (!collection) {
-      return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+      return NextResponse.json({ error: "Collection not found in your workspace" }, { status: 404 });
     }
 
     return NextResponse.json({ collection });
@@ -39,11 +44,16 @@ export async function DELETE(
     const { slug } = await params;
 
     const collection = await prisma.collectionDefinition.findUnique({
-      where: { slug },
+      where: {
+        userId_slug: {
+          userId: session.userId,
+          slug,
+        },
+      },
     });
 
     if (!collection) {
-      return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+      return NextResponse.json({ error: "Collection not found in your workspace" }, { status: 404 });
     }
 
     await prisma.collectionDefinition.delete({

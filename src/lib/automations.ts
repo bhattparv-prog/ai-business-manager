@@ -13,12 +13,15 @@ export interface AutomationTriggerPayload {
 
 export async function processAutomations(payload: AutomationTriggerPayload) {
   try {
-    const rules = await prisma.automationRule.findMany({
-      where: {
-        triggerType: payload.triggerType,
-        isActive: true,
-      },
-    });
+    const where: any = {
+      triggerType: payload.triggerType,
+      isActive: true,
+    };
+    if (payload.userId) {
+      where.userId = payload.userId;
+    }
+
+    const rules = await prisma.automationRule.findMany({ where });
 
     for (const rule of rules) {
       try {
@@ -45,44 +48,37 @@ export async function processAutomations(payload: AutomationTriggerPayload) {
         if (conditionConfig.field && payload.recordData) {
           const val = payload.recordData[conditionConfig.field];
           const target = conditionConfig.value;
-          const op = conditionConfig.operator || "equals";
 
-          if (op === "equals" && String(val).toLowerCase() !== String(target).toLowerCase()) {
-            conditionPassed = false;
-          } else if (op === "greater_than" && Number(val) <= Number(target)) {
-            conditionPassed = false;
-          } else if (op === "less_than" && Number(val) >= Number(target)) {
-            conditionPassed = false;
-          } else if (op === "contains" && !String(val).toLowerCase().includes(String(target).toLowerCase())) {
-            conditionPassed = false;
+          if (conditionConfig.operator === "equals") {
+            conditionPassed = String(val) === String(target);
+          } else if (conditionConfig.operator === "contains") {
+            conditionPassed = String(val).toLowerCase().includes(String(target).toLowerCase());
+          } else if (conditionConfig.operator === "greater_than") {
+            conditionPassed = Number(val) > Number(target);
+          } else if (conditionConfig.operator === "less_than") {
+            conditionPassed = Number(val) < Number(target);
           }
         }
 
-        if (!conditionPassed) {
-          await prisma.automationLog.create({
-            data: {
-              ruleId: rule.id,
-              status: "skipped",
-              details: JSON.stringify({ reason: "Condition not met", payload }),
-            },
-          });
-          continue;
-        }
+        if (!conditionPassed) continue;
 
-        // Execute Action
+        // Execute configured action
         let actionConfig: Record<string, any> = {};
         try {
           actionConfig = JSON.parse(rule.actionConfig || "{}");
         } catch {}
 
-        if (rule.actionType === "in_app_notification" || rule.actionType === "web_push") {
+        if (
+          rule.actionType === "in_app_notification" ||
+          rule.actionType === "web_push"
+        ) {
           const title = actionConfig.title || `Automation: ${rule.name}`;
           const message =
             actionConfig.message ||
             `Rule triggered for record: ${payload.recordId || "Event"}`;
 
           await sendNotification({
-            userId: payload.userId ?? null,
+            userId: payload.userId || rule.userId,
             title,
             message,
             type: actionConfig.type || "info",
@@ -91,6 +87,7 @@ export async function processAutomations(payload: AutomationTriggerPayload) {
         } else if (rule.actionType === "create_task") {
           await prisma.task.create({
             data: {
+              userId: rule.userId,
               title: actionConfig.taskTitle || `Follow-up on ${rule.name}`,
               description: actionConfig.taskDescription || `Automatically created task from rule: ${rule.name}`,
               priority: actionConfig.priority || "medium",
@@ -117,7 +114,7 @@ export async function processAutomations(payload: AutomationTriggerPayload) {
         });
       }
     }
-  } catch (error) {
-    console.error("Error processing automations:", error);
+  } catch (err) {
+    console.error("Error processing automations:", err);
   }
 }

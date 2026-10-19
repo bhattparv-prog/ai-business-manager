@@ -18,6 +18,7 @@ export async function getApiKey(): Promise<string | null> {
 // Fetch live context from database for grounding
 export async function getGroundedBusinessContext(userId: string) {
   const collections = await prisma.collectionDefinition.findMany({
+    where: { userId },
     include: {
       fields: true,
       _count: {
@@ -31,18 +32,20 @@ export async function getGroundedBusinessContext(userId: string) {
   });
 
   const tasks = await prisma.task.findMany({
+    where: { userId },
     take: 20,
     orderBy: { createdAt: "desc" },
     include: { assignedTo: { select: { name: true, email: true } } },
   });
 
   const notifications = await prisma.notification.findMany({
-    where: { OR: [{ userId }, { userId: null }] },
+    where: { userId },
     take: 10,
     orderBy: { createdAt: "desc" },
   });
 
   const dataSources = await prisma.dataSource.findMany({
+    where: { userId },
     take: 10,
     orderBy: { createdAt: "desc" },
   });
@@ -105,7 +108,9 @@ export async function getGroundedBusinessContext(userId: string) {
     };
   }
 
-  const allTimeRecords = await prisma.recordItem.count();
+  const allTimeRecords = await prisma.recordItem.count({
+    where: { collection: { userId } },
+  });
 
   return {
     summary: {

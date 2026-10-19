@@ -39,12 +39,13 @@ async function main() {
     console.log("Created initial Owner user: owner@business.local / Owner@123456");
   }
 
-  // 3. Create Sample Configurable Collections if none exist
-  const existingCols = await prisma.collectionDefinition.count();
+  // 3. Create Sample Configurable Collections if none exist for owner
+  const existingCols = await prisma.collectionDefinition.count({ where: { userId: owner.id } });
   if (existingCols === 0) {
     // Projects collection
     const projectsCol = await prisma.collectionDefinition.create({
       data: {
+        userId: owner.id,
         name: "Projects",
         slug: "projects",
         description: "Active business projects, milestones, and deliverable tracking",
@@ -78,40 +79,10 @@ async function main() {
       },
     });
 
-    // Sample project records
-    await prisma.recordItem.create({
-      data: {
-        collectionId: projectsCol.id,
-        createdById: owner.id,
-        data: JSON.stringify({
-          name: "Q4 Client Growth Campaign",
-          client: "Acme Enterprises",
-          status: "In Progress",
-          budget: 125000,
-          priority: "High",
-          deadline: "2026-11-15",
-        }),
-      },
-    });
-
-    await prisma.recordItem.create({
-      data: {
-        collectionId: projectsCol.id,
-        createdById: owner.id,
-        data: JSON.stringify({
-          name: "ERP Workflow Automation",
-          client: "Global Logistics Ltd",
-          status: "Review",
-          budget: 240000,
-          priority: "Critical",
-          deadline: "2026-10-30",
-        }),
-      },
-    });
-
     // Leads collection
-    const leadsCol = await prisma.collectionDefinition.create({
+    await prisma.collectionDefinition.create({
       data: {
+        userId: owner.id,
         name: "Leads & Inquiries",
         slug: "leads",
         description: "Inbound sales opportunities and new client contacts",
@@ -136,85 +107,7 @@ async function main() {
       },
     });
 
-    await prisma.recordItem.create({
-      data: {
-        collectionId: leadsCol.id,
-        createdById: owner.id,
-        data: JSON.stringify({
-          contact_name: "Rahul Verma",
-          email: "rahul@vermatech.in",
-          phone: "+91 98765 43210",
-          stage: "Proposal Sent",
-          deal_value: 85000,
-        }),
-      },
-    });
-
     console.log("Seeded template collections: Projects & Leads");
-  }
-
-  // 4. Create Sample Tasks
-  const taskCount = await prisma.task.count();
-  if (taskCount === 0) {
-    await prisma.task.create({
-      data: {
-        title: "Review Q4 Strategy & Deliverables",
-        description: "Analyze monthly project budget versus actual expenses.",
-        status: "pending",
-        priority: "high",
-        dueDate: new Date(Date.now() + 86400000 * 2),
-        createdById: owner.id,
-        assignedToId: owner.id,
-      },
-    });
-
-    await prisma.task.create({
-      data: {
-        title: "Follow up with Rahul Verma on proposal",
-        description: "Check if the proposal terms are aligned.",
-        status: "pending",
-        priority: "medium",
-        dueDate: new Date(Date.now() + 86400000),
-        createdById: owner.id,
-        assignedToId: owner.id,
-      },
-    });
-    console.log("Seeded initial tasks");
-  }
-
-  // 5. Create Sample Welcome Notification
-  const notifCount = await prisma.notification.count();
-  if (notifCount === 0) {
-    await prisma.notification.create({
-      data: {
-        userId: owner.id,
-        title: "Welcome to AI Business Manager",
-        message: "Your configurable AI Management & Automation Assistant is ready. Connect data sources, customize forms, or query your AI Assistant.",
-        type: "success",
-        link: "/dashboard",
-      },
-    });
-  }
-
-  // 6. Create Default Automation Rule
-  const ruleCount = await prisma.automationRule.count();
-  if (ruleCount === 0) {
-    await prisma.automationRule.create({
-      data: {
-        name: "New Lead In-App Alert",
-        triggerType: "new_record",
-        triggerConfig: JSON.stringify({}),
-        conditionConfig: JSON.stringify({}),
-        actionType: "in_app_notification",
-        actionConfig: JSON.stringify({
-          title: "New Record Logged",
-          message: "A new business record was created and saved to the database.",
-          type: "info",
-        }),
-        isActive: true,
-      },
-    });
-    console.log("Seeded default automation rule");
   }
 
   console.log("Seeding complete!");

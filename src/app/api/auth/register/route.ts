@@ -28,9 +28,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Determine role: if first non-seed user or specified, can be OWNER
-    const userCount = await prisma.user.count();
-    const role = userCount <= 1 ? "OWNER" : "EMPLOYEE";
+    // Every registered user is an independent OWNER of their own business workspace
+    const role = "OWNER";
 
     const passwordHash = await hashPassword(password);
     const user = await prisma.user.create({
@@ -42,12 +41,51 @@ export async function POST(req: Request) {
       },
     });
 
+    // Initialize starter default collections for this new owner's private workspace
+    await prisma.collectionDefinition.create({
+      data: {
+        userId: user.id,
+        name: "Projects",
+        slug: "projects",
+        description: "Track client deliverables, scopes, and milestones",
+        icon: "Briefcase",
+        fields: {
+          create: [
+            { name: "Project Name", key: "name", type: "text", isRequired: true, orderIndex: 0 },
+            { name: "Client Name", key: "client", type: "text", isRequired: false, orderIndex: 1 },
+            { name: "Status", key: "status", type: "select", options: JSON.stringify(["Discovery", "In Progress", "Review", "Completed"]), isRequired: false, orderIndex: 2 },
+            { name: "Budget", key: "budget", type: "number", isRequired: false, orderIndex: 3 },
+            { name: "Due Date", key: "due_date", type: "date", isRequired: false, orderIndex: 4 },
+          ],
+        },
+      },
+    });
+
+    await prisma.collectionDefinition.create({
+      data: {
+        userId: user.id,
+        name: "Leads & Inquiries",
+        slug: "leads",
+        description: "Incoming customer inquiries and prospects",
+        icon: "Users",
+        fields: {
+          create: [
+            { name: "Contact Name", key: "contact_name", type: "text", isRequired: true, orderIndex: 0 },
+            { name: "Email", key: "email", type: "email", isRequired: false, orderIndex: 1 },
+            { name: "Phone", key: "phone", type: "phone", isRequired: false, orderIndex: 2 },
+            { name: "Stage", key: "stage", type: "select", options: JSON.stringify(["New", "Contacted", "Proposal Sent", "Won", "Lost"]), isRequired: false, orderIndex: 3 },
+            { name: "Deal Value", key: "deal_value", type: "number", isRequired: false, orderIndex: 4 },
+          ],
+        },
+      },
+    });
+
     // Create welcome notification
     await prisma.notification.create({
       data: {
         userId: user.id,
-        title: "Account Created Successfully",
-        message: `Welcome ${user.name}! Your ${role.toLowerCase()} workspace is ready to manage your business operations.`,
+        title: "Private Workspace Ready",
+        message: `Welcome ${user.name}! Your independent business workspace has been initialized. All your data, sheets, and records are completely private to your account.`,
         type: "success",
         link: "/dashboard",
       },
@@ -58,7 +96,7 @@ export async function POST(req: Request) {
       userId: user.id,
       email: user.email,
       name: user.name,
-      role: user.role as "OWNER" | "EMPLOYEE",
+      role: "OWNER",
     });
 
     await logAuditEvent({
@@ -66,7 +104,7 @@ export async function POST(req: Request) {
       action: "REGISTER",
       entityType: "USER",
       entityId: user.id,
-      details: { role },
+      details: { role: "OWNER" },
     });
 
     const response = NextResponse.json({
@@ -75,7 +113,7 @@ export async function POST(req: Request) {
         id: user.id,
         email: user.email,
         name: user.name,
-        role: user.role,
+        role: "OWNER",
       },
     });
 

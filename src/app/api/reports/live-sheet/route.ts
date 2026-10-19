@@ -4,10 +4,15 @@ import { requireAuth } from "@/lib/auth";
 
 export async function GET() {
   try {
-    await requireAuth();
+    const session = await requireAuth();
 
     const collection = await prisma.collectionDefinition.findUnique({
-      where: { slug: "google_sheet_events" },
+      where: {
+        userId_slug: {
+          userId: session.userId,
+          slug: "google_sheet_events",
+        },
+      },
       include: {
         records: {
           select: {
@@ -20,15 +25,15 @@ export async function GET() {
     });
 
     const dataSource = await prisma.dataSource.findFirst({
-      where: { type: "google_sheets" },
+      where: { userId: session.userId, type: "google_sheets" },
     });
 
     if (!collection || collection.records.length === 0) {
       return NextResponse.json({
         hasData: false,
         totalEvents: 0,
-        dataSource,
-        message: "Google Sheet not yet synced. Please run initial sync in Data Sources.",
+        dataSource: null,
+        message: "No Google Sheet connected yet for your business account. Connect one in Data Sources.",
       });
     }
 

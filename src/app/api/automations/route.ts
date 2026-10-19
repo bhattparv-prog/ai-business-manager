@@ -5,8 +5,11 @@ import { logAuditEvent } from "@/lib/audit";
 
 export async function GET() {
   try {
-    await requireOwner();
+    const session = await requireOwner();
     const rules = await prisma.automationRule.findMany({
+      where: {
+        userId: session.userId,
+      },
       include: {
         logs: {
           take: 5,
@@ -33,6 +36,7 @@ export async function POST(req: Request) {
 
     const rule = await prisma.automationRule.create({
       data: {
+        userId: session.userId,
         name,
         triggerType,
         triggerConfig: JSON.stringify(triggerConfig),
@@ -62,20 +66,21 @@ export async function PUT(req: Request) {
     const session = await requireOwner();
     const { id, isActive } = await req.json();
 
-    const rule = await prisma.automationRule.update({
+    if (!id) {
+      return NextResponse.json({ error: "Rule ID is required" }, { status: 400 });
+    }
+
+    const existing = await prisma.automationRule.findUnique({ where: { id } });
+    if (!existing || existing.userId !== session.userId) {
+      return NextResponse.json({ error: "Rule not found in your workspace" }, { status: 404 });
+    }
+
+    const updated = await prisma.automationRule.update({
       where: { id },
       data: { isActive },
     });
 
-    await logAuditEvent({
-      userId: session.userId,
-      action: "TOGGLE_AUTOMATION_RULE",
-      entityType: "AUTOMATION",
-      entityId: id,
-      details: { isActive },
-    });
-
-    return NextResponse.json({ rule });
+    return NextResponse.json({ rule: updated });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -87,7 +92,14 @@ export async function DELETE(req: Request) {
     const url = new URL(req.url);
     const id = url.searchParams.get("id");
 
-    if (!id) return NextResponse.json({ error: "Rule ID required" }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ error: "Rule ID is required" }, { status: 400 });
+    }
+
+    const existing = await prisma.automationRule.findUnique({ where: { id } });
+    if (!existing || existing.userId !== session.userId) {
+      return NextResponse.json({ error: "Rule not found in your workspace" }, { status: 404 });
+    }
 
     await prisma.automationRule.delete({ where: { id } });
 

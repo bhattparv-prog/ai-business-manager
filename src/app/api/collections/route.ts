@@ -5,8 +5,11 @@ import { logAuditEvent } from "@/lib/audit";
 
 export async function GET() {
   try {
-    await requireAuth();
+    const session = await requireAuth();
     const collections = await prisma.collectionDefinition.findMany({
+      where: {
+        userId: session.userId,
+      },
       include: {
         fields: {
           orderBy: { orderIndex: "asc" },
@@ -36,14 +39,20 @@ export async function POST(req: Request) {
     const cleanSlug = (slug || name.toLowerCase().replace(/[^a-z0-9]/g, "-")).trim();
 
     const existing = await prisma.collectionDefinition.findUnique({
-      where: { slug: cleanSlug },
+      where: {
+        userId_slug: {
+          userId: session.userId,
+          slug: cleanSlug,
+        },
+      },
     });
     if (existing) {
-      return NextResponse.json({ error: "A collection with this slug already exists" }, { status: 400 });
+      return NextResponse.json({ error: "A collection with this slug already exists in your workspace" }, { status: 400 });
     }
 
     const collection = await prisma.collectionDefinition.create({
       data: {
+        userId: session.userId,
         name,
         slug: cleanSlug,
         description,

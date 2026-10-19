@@ -15,6 +15,7 @@ export async function POST(req: Request) {
     if (actionType === "create_task") {
       const task = await prisma.task.create({
         data: {
+          userId: session.userId,
           title: data.title || "AI Follow-up Task",
           description: data.description || "Created from AI Assistant conversation",
           priority: data.priority || "medium",
@@ -38,11 +39,16 @@ export async function POST(req: Request) {
     if (actionType === "create_record") {
       const { collectionSlug, recordData } = data;
       const collection = await prisma.collectionDefinition.findUnique({
-        where: { slug: collectionSlug },
+        where: {
+          userId_slug: {
+            userId: session.userId,
+            slug: collectionSlug,
+          },
+        },
       });
 
       if (!collection) {
-        return NextResponse.json({ error: `Collection ${collectionSlug} not found` }, { status: 404 });
+        return NextResponse.json({ error: `Collection ${collectionSlug} not found in your workspace` }, { status: 404 });
       }
 
       const record = await prisma.recordItem.create({

@@ -19,13 +19,16 @@ export async function GET(req: Request) {
       dateFilter = new Date(now.getFullYear(), now.getMonth(), 1);
     }
 
-    const recordWhere: any = {};
+    const recordWhere: any = {
+      collection: { userId: session.userId },
+    };
     if (dateFilter) {
       recordWhere.createdAt = { gte: dateFilter };
     }
 
-    // 1. Total records and collections
+    // 1. Total records and collections for THIS user only
     const collections = await prisma.collectionDefinition.findMany({
+      where: { userId: session.userId },
       include: {
         _count: { select: { records: true } },
       },
@@ -33,47 +36,54 @@ export async function GET(req: Request) {
     });
 
     const totalRecords = await prisma.recordItem.count({ where: recordWhere });
-    const allTimeRecords = await prisma.recordItem.count();
+    const allTimeRecords = await prisma.recordItem.count({
+      where: { collection: { userId: session.userId } },
+    });
 
-    // 2. Tasks stats
-    const totalTasks = await prisma.task.count();
-    const pendingTasks = await prisma.task.count({ where: { status: "pending" } });
+    // 2. Tasks stats for THIS user only
+    const totalTasks = await prisma.task.count({ where: { userId: session.userId } });
+    const pendingTasks = await prisma.task.count({
+      where: { userId: session.userId, status: "pending" },
+    });
     const urgentTasks = await prisma.task.count({
       where: {
+        userId: session.userId,
         status: "pending",
         priority: { in: ["high", "urgent"] },
       },
     });
 
-    // 3. Data sources
+    // 3. Data sources for THIS user only
     const dataSources = await prisma.dataSource.findMany({
+      where: { userId: session.userId },
       select: { id: true, name: true, type: true, status: true, lastSyncAt: true },
     });
 
-    // 4. Notifications unread
+    // 4. Notifications unread for THIS user only
     const unreadNotifications = await prisma.notification.count({
       where: {
-        OR: [{ userId: session.userId }, { userId: null }],
+        userId: session.userId,
         read: false,
       },
     });
 
-    // 5. Recent Activity from Audit Logs
+    // 5. Recent Activity from Audit Logs for THIS user only
     const recentActivity = await prisma.auditLog.findMany({
+      where: { userId: session.userId },
       take: 6,
       orderBy: { createdAt: "desc" },
       include: { user: { select: { name: true, role: true } } },
     });
 
-    // 6. Upcoming pending tasks
+    // 6. Upcoming pending tasks for THIS user only
     const upcomingTasks = await prisma.task.findMany({
-      where: { status: "pending" },
+      where: { userId: session.userId, status: "pending" },
       take: 5,
       orderBy: [{ priority: "desc" }, { dueDate: "asc" }],
       include: { assignedTo: { select: { name: true } } },
     });
 
-    // 7. Collection distribution breakdown
+    // 7. Collection distribution breakdown for THIS user only
     const collectionBreakdown = collections.map((c) => ({
       name: c.name,
       slug: c.slug,

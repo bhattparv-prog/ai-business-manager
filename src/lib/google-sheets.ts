@@ -47,7 +47,6 @@ export function parseCSV(text: string): string[][] {
 
 // Extract spreadsheet ID and gid from any Google Sheet URL
 export function parseGoogleSheetUrl(inputUrl: string): { sheetId: string; gid: string; exportUrl: string } {
-  // Example: https://docs.google.com/spreadsheets/d/1cMSVpPyG1SzAiCVqa7_YvsrFVIVIGgmBEtCTpuRQYEg/edit?gid=281748641#gid=281748641
   const matchId = inputUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
   if (!matchId) {
     throw new Error("Invalid Google Sheet URL. Could not extract spreadsheet ID.");
@@ -100,7 +99,7 @@ export interface SyncOptions {
   sheetUrl: string;
   collectionSlug?: string;
   collectionName?: string;
-  userId?: string;
+  userId: string;
 }
 
 export async function syncGoogleSheet({
@@ -109,6 +108,10 @@ export async function syncGoogleSheet({
   collectionName = "Google Sheet Live Event Stream",
   userId,
 }: SyncOptions) {
+  if (!userId) {
+    throw new Error("User ID is required to sync a private Google Sheet.");
+  }
+
   const { sheetId, gid, exportUrl } = parseGoogleSheetUrl(sheetUrl);
 
   // 1. Fetch CSV
@@ -137,15 +140,21 @@ export async function syncGoogleSheet({
     key: sanitizeKey(h, i),
   }));
 
-  // 2. Find or create CollectionDefinition
+  // 2. Find or create CollectionDefinition for THIS USER ONLY
   let collection = await prisma.collectionDefinition.findUnique({
-    where: { slug: collectionSlug },
+    where: {
+      userId_slug: {
+        userId,
+        slug: collectionSlug,
+      },
+    },
     include: { fields: true },
   });
 
   if (!collection) {
     collection = await prisma.collectionDefinition.create({
       data: {
+        userId,
         name: collectionName,
         slug: collectionSlug,
         description: `Live synchronized data from Google Sheet (${sheetId}, tab gid: ${gid})`,
@@ -155,7 +164,7 @@ export async function syncGoogleSheet({
           create: fieldKeys.map((f, idx) => ({
             name: f.raw,
             key: f.key,
-            type: f.key.includes("time") || f.key.includes("date") ? "text" : "text",
+            type: "text",
             orderIndex: idx,
             isRequired: false,
           })),
@@ -165,9 +174,9 @@ export async function syncGoogleSheet({
     });
   }
 
-  // 3. Upsert DataSource
+  // 3. Upsert DataSource for THIS USER ONLY
   let dataSource = await prisma.dataSource.findFirst({
-    where: { name: collectionName, type: "google_sheets" },
+    where: { userId, name: collectionName, type: "google_sheets" },
   });
 
   const dsConfig = JSON.stringify({
@@ -182,6 +191,7 @@ export async function syncGoogleSheet({
   if (!dataSource) {
     dataSource = await prisma.dataSource.create({
       data: {
+        userId,
         name: collectionName,
         type: "google_sheets",
         config: dsConfig,
@@ -195,14 +205,11 @@ export async function syncGoogleSheet({
     });
   }
 
-  // 4. Batch sync records into RecordItem
-  // For live stream data, we can clear prior records for this sheet collection to prevent unbounded duplicate accumulation
-  // or upsert them. Clearing and replacing gives an exact reflection of the sheet at this point in time.
+  // 4. Batch sync records into RecordItem (only for this user's collection)
   await prisma.recordItem.deleteMany({
     where: { collectionId: collection.id },
   });
 
-  // Prepare batch insert
   const batchSize = 500;
   let recordsAdded = 0;
 
@@ -215,7 +222,7 @@ export async function syncGoogleSheet({
       });
       return {
         collectionId: collection.id,
-        createdById: userId || null,
+        createdById: userId,
         data: JSON.stringify(recordData),
       };
     });
@@ -250,20 +257,18 @@ export async function syncGoogleSheet({
   });
 
   // 7. Audit log
-  if (userId) {
-    await logAuditEvent({
-      userId,
-      action: "SYNC_GOOGLE_SHEET",
-      entityType: "DATA_SOURCE",
-      entityId: dataSource.id,
-      details: {
-        sheetId,
-        gid,
-        collectionSlug,
-        recordsAdded,
-      },
-    });
-  }
+  await logAuditEvent({
+    userId,
+    action: "SYNC_GOOGLE_SHEET",
+    entityType: "DATA_SOURCE",
+    entityId: dataSource.id,
+    details: {
+      sheetId,
+      gid,
+      collectionSlug,
+      recordsAdded,
+    },
+  });
 
   return {
     success: true,

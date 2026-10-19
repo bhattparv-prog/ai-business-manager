@@ -9,13 +9,18 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    await requireAuth();
+    const session = await requireAuth();
     const { slug } = await params;
     const url = new URL(req.url);
     const search = url.searchParams.get("search") || "";
 
     const collection = await prisma.collectionDefinition.findUnique({
-      where: { slug },
+      where: {
+        userId_slug: {
+          userId: session.userId,
+          slug,
+        },
+      },
       include: {
         fields: {
           orderBy: { orderIndex: "asc" },
@@ -24,7 +29,7 @@ export async function GET(
     });
 
     if (!collection) {
-      return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+      return NextResponse.json({ error: "Collection not found in your workspace" }, { status: 404 });
     }
 
     const records = await prisma.recordItem.findMany({
@@ -74,12 +79,17 @@ export async function POST(
     const body = await req.json();
 
     const collection = await prisma.collectionDefinition.findUnique({
-      where: { slug },
+      where: {
+        userId_slug: {
+          userId: session.userId,
+          slug,
+        },
+      },
       include: { fields: true },
     });
 
     if (!collection) {
-      return NextResponse.json({ error: "Collection not found" }, { status: 404 });
+      return NextResponse.json({ error: "Collection not found in your workspace" }, { status: 404 });
     }
 
     // Validate required fields

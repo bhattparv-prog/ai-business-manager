@@ -10,14 +10,11 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const status = url.searchParams.get("status");
 
-    const where: any = {};
+    const where: any = {
+      userId: session.userId,
+    };
     if (status && status !== "all") {
       where.status = status;
-    }
-
-    // Employees see only assigned tasks or tasks they created; Owner sees all
-    if (session.role !== "OWNER") {
-      where.OR = [{ assignedToId: session.userId }, { createdById: session.userId }];
     }
 
     const tasks = await prisma.task.findMany({
@@ -46,6 +43,7 @@ export async function POST(req: Request) {
 
     const task = await prisma.task.create({
       data: {
+        userId: session.userId,
         title,
         description,
         priority,
@@ -89,6 +87,12 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Task ID is required" }, { status: 400 });
     }
 
+    // Verify task belongs to this user
+    const existing = await prisma.task.findUnique({ where: { id } });
+    if (!existing || existing.userId !== session.userId) {
+      return NextResponse.json({ error: "Task not found in your workspace" }, { status: 404 });
+    }
+
     const updated = await prisma.task.update({
       where: { id },
       data: {
@@ -121,6 +125,11 @@ export async function DELETE(req: Request) {
 
     if (!id) {
       return NextResponse.json({ error: "Task ID is required" }, { status: 400 });
+    }
+
+    const existing = await prisma.task.findUnique({ where: { id } });
+    if (!existing || existing.userId !== session.userId) {
+      return NextResponse.json({ error: "Task not found in your workspace" }, { status: 404 });
     }
 
     await prisma.task.delete({ where: { id } });

@@ -5,8 +5,11 @@ import { logAuditEvent } from "@/lib/audit";
 
 export async function GET() {
   try {
-    await requireOwner();
+    const session = await requireOwner();
     const sources = await prisma.dataSource.findMany({
+      where: {
+        userId: session.userId,
+      },
       include: {
         history: {
           take: 10,
@@ -32,22 +35,28 @@ export async function POST(req: Request) {
     }
 
     const collection = await prisma.collectionDefinition.findUnique({
-      where: { slug: collectionSlug },
+      where: {
+        userId_slug: {
+          userId: session.userId,
+          slug: collectionSlug,
+        },
+      },
       include: { fields: true },
     });
 
     if (!collection) {
-      return NextResponse.json({ error: `Collection ${collectionSlug} not found` }, { status: 404 });
+      return NextResponse.json({ error: `Collection ${collectionSlug} not found in your workspace` }, { status: 404 });
     }
 
-    // Create or find data source
+    // Create or find data source for this user
     let dataSource = await prisma.dataSource.findFirst({
-      where: { name, type },
+      where: { userId: session.userId, name, type },
     });
 
     if (!dataSource) {
       dataSource = await prisma.dataSource.create({
         data: {
+          userId: session.userId,
           name,
           type,
           config: JSON.stringify({ collectionSlug, columnMapping }),

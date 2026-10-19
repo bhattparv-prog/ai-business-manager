@@ -17,8 +17,8 @@ export async function PUT(
       include: { collection: true },
     });
 
-    if (!record || record.collection.slug !== slug) {
-      return NextResponse.json({ error: "Record not found" }, { status: 404 });
+    if (!record || record.collection.slug !== slug || record.collection.userId !== session.userId) {
+      return NextResponse.json({ error: "Record not found in your workspace" }, { status: 404 });
     }
 
     const updated = await prisma.recordItem.update({
@@ -56,8 +56,8 @@ export async function DELETE(
       include: { collection: true },
     });
 
-    if (!record || record.collection.slug !== slug) {
-      return NextResponse.json({ error: "Record not found" }, { status: 404 });
+    if (!record || record.collection.slug !== slug || record.collection.userId !== session.userId) {
+      return NextResponse.json({ error: "Record not found in your workspace" }, { status: 404 });
     }
 
     await prisma.recordItem.delete({
