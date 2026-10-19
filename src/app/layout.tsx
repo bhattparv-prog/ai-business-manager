@@ -8,13 +8,13 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "AI Business Manager",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0ea5e9",
+  themeColor: "#ea580c",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -27,11 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
       </head>
-      <body className="antialiased selection:bg-sky-500/30 selection:text-sky-200 min-h-screen flex flex-col bg-[#090d16] text-slate-100">
+      <body className="antialiased selection:bg-orange-500/20 selection:text-orange-700 min-h-screen flex flex-col bg-[#f8fafc] text-slate-800">
         <ServiceWorkerRegister />
         {children}
       </body>

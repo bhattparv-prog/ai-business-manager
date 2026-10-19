@@ -4,8 +4,8 @@
   "description": "Personal AI Business Manager & Real-Time Automation Assistant",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#090d16",
-  "theme_color": "#0ea5e9",
+  "background_color": "#ffffff",
+  "theme_color": "#ea580c",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",

@@ -43,17 +43,17 @@ export default function Sidebar({ userRole = "OWNER", unreadCount = 0 }: Sidebar
   ];
 
   return (
-    <aside className="hidden md:flex flex-col w-64 glass-panel border-r border-slate-800/80 bg-[#0c1222]/90 h-screen sticky top-0 shrink-0">
+    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200 h-screen sticky top-0 shrink-0 z-30 shadow-[1px_0_4px_rgba(0,0,0,0.02)]">
       {/* Brand Header */}
-      <div className="p-5 border-b border-slate-800/80 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+      <div className="p-5 border-b border-slate-100 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shadow-md shadow-orange-500/25">
           <Sparkles className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h1 className="font-semibold text-slate-100 tracking-tight text-base leading-snug">
-            AI Business Manager
+          <h1 className="font-bold text-slate-900 tracking-tight text-base leading-snug">
+            AI Manager
           </h1>
-          <p className="text-xs text-sky-400 font-medium">Personal Assistant</p>
+          <p className="text-xs text-orange-600 font-semibold">Personal Assistant</p>
         </div>
       </div>
 
@@ -67,23 +67,23 @@ export default function Sidebar({ userRole = "OWNER", unreadCount = 0 }: Sidebar
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 isActive
-                  ? "bg-sky-500/15 text-sky-400 border border-sky-500/30 shadow-sm"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                  ? "bg-orange-50 text-orange-600 border border-orange-200/90 shadow-sm font-semibold"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
               }`}
             >
               <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${isActive ? "text-sky-400" : "text-slate-400"}`} />
+                <Icon className={`w-4 h-4 ${isActive ? "text-orange-500" : "text-slate-400"}`} />
                 <span>{item.label}</span>
               </div>
               {item.badge && (
-                <span className="text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-500/30">
+                <span className="text-[10px] font-bold bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded border border-orange-200">
                   {item.badge}
                 </span>
               )}
               {item.count !== undefined && (
-                <span className="text-xs font-bold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
+                <span className="text-xs font-bold bg-orange-500 text-white px-2 py-0.5 rounded-full shadow-sm">
                   {item.count}
                 </span>
               )}
@@ -93,11 +93,11 @@ export default function Sidebar({ userRole = "OWNER", unreadCount = 0 }: Sidebar
       </nav>
 
       {/* Footer info */}
-      <div className="p-4 border-t border-slate-800/80 text-xs text-slate-400">
+      <div className="p-4 border-t border-slate-100 text-xs text-slate-500 bg-slate-50/50">
         <div className="flex items-center justify-between">
-          <span className="text-slate-400">Status</span>
-          <span className="inline-flex items-center gap-1.5 text-emerald-400 font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-slate-500">Status</span>
+          <span className="inline-flex items-center gap-1.5 text-emerald-600 font-semibold">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             Connected (₹0 Dev)
           </span>
         </div>

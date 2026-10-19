@@ -29,7 +29,6 @@ export default function AssistantClient() {
   ];
 
   useEffect(() => {
-    // Initial greeting
     setMessages([
       {
         id: "intro",
@@ -114,39 +113,39 @@ export default function AssistantClient() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto glass-panel rounded-2xl border border-slate-800 overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-8rem)] max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200 shadow-md overflow-hidden">
       {/* Assistant Header */}
-      <div className="p-4 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between">
+      <div className="p-4 border-b border-slate-100 bg-slate-50/70 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shadow-md shadow-orange-500/20">
             <Bot className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-sm font-semibold text-slate-100 flex items-center gap-2">
+            <h1 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               <span>Personal Business Assistant</span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium border border-emerald-500/30">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-bold border border-orange-200">
                 Grounded in Live Data
               </span>
             </h1>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-slate-500 font-medium">
               Zero hallucination • Strictly authorized records
             </p>
           </div>
         </div>
 
         {groundedStats && (
-          <div className="hidden sm:flex items-center gap-3 text-xs text-slate-400 bg-slate-800/60 px-3 py-1 rounded-lg border border-slate-700/50">
-            <Database className="w-3.5 h-3.5 text-sky-400" />
+          <div className="hidden sm:flex items-center gap-3 text-xs text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-sm font-medium">
+            <Database className="w-3.5 h-3.5 text-orange-500" />
             <span>
-              <strong>{groundedStats.totalCollections}</strong> collections •{" "}
-              <strong>{groundedStats.pendingTasks}</strong> pending tasks
+              <strong className="text-slate-900">{groundedStats.totalCollections}</strong> collections •{" "}
+              <strong className="text-slate-900">{groundedStats.pendingTasks}</strong> pending tasks
             </span>
           </div>
         )}
       </div>
 
       {/* Messages Stream */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 bg-slate-50/30">
         {messages.map((m) => {
           const isUser = m.role === "user";
 
@@ -156,37 +155,37 @@ export default function AssistantClient() {
               className={`flex gap-3 max-w-2xl ${isUser ? "ml-auto flex-row-reverse" : ""}`}
             >
               <div
-                className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
                   isUser
-                    ? "bg-slate-700 text-slate-200"
-                    : "bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-sm"
+                    ? "bg-slate-800 text-white shadow-sm"
+                    : "bg-gradient-to-tr from-orange-500 to-amber-500 text-white shadow-sm shadow-orange-500/25"
                 }`}
               >
                 {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
               </div>
 
               <div
-                className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                   isUser
-                    ? "bg-sky-600 text-white rounded-tr-none shadow-md shadow-sky-500/10"
-                    : "glass-panel bg-slate-900/90 border border-slate-800 text-slate-200 rounded-tl-none"
+                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-tr-none shadow-md shadow-orange-500/15"
+                    : "bg-white border border-slate-200/90 text-slate-800 rounded-tl-none shadow-sm"
                 }`}
               >
                 <div className="whitespace-pre-wrap">{m.content}</div>
 
                 {/* AI Proposed Action Card */}
                 {m.actionData && (
-                  <div className="mt-3 p-3 rounded-xl bg-slate-800/80 border border-sky-500/30 text-xs">
-                    <div className="flex items-center gap-1.5 text-sky-400 font-semibold mb-1">
-                      <Sparkles className="w-3.5 h-3.5" />
+                  <div className="mt-3 p-3.5 rounded-xl bg-orange-50/70 border border-orange-200 text-xs">
+                    <div className="flex items-center gap-1.5 text-orange-700 font-bold mb-1">
+                      <Sparkles className="w-3.5 h-3.5 text-orange-500" />
                       <span>Proposed Action Requires Confirmation</span>
                     </div>
-                    <pre className="text-[10px] bg-slate-950 p-2 rounded text-slate-300 font-mono overflow-x-auto my-2">
+                    <pre className="text-[10px] bg-white p-2.5 rounded-lg border border-orange-100 text-slate-800 font-mono overflow-x-auto my-2">
                       {m.actionData}
                     </pre>
                     <button
                       onClick={() => executeAction(m.actionData)}
-                      className="px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-white font-semibold text-xs transition-colors flex items-center gap-1.5 shadow-sm"
+                      className="px-3.5 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs transition-colors flex items-center gap-1.5 shadow-sm shadow-orange-500/20"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>Approve & Execute Action</span>
@@ -200,11 +199,11 @@ export default function AssistantClient() {
 
         {loading && (
           <div className="flex gap-3 max-w-md">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-500 text-white flex items-center justify-center shrink-0">
               <Bot className="w-4 h-4 animate-spin" />
             </div>
-            <div className="p-3 rounded-2xl glass-panel bg-slate-900/90 border border-slate-800 text-xs text-slate-400 flex items-center gap-2">
-              <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-400" />
+            <div className="p-3.5 rounded-2xl bg-white border border-slate-200 text-xs text-slate-600 flex items-center gap-2 shadow-sm font-medium">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-orange-500" />
               <span>Analyzing live database records & preparing response...</span>
             </div>
           </div>
@@ -214,15 +213,15 @@ export default function AssistantClient() {
       </div>
 
       {/* Suggestion Chips */}
-      <div className="px-4 py-2 border-t border-slate-800/80 bg-slate-900/50 flex items-center gap-2 overflow-x-auto text-xs">
-        <span className="text-[10px] text-slate-500 uppercase font-semibold shrink-0">
+      <div className="px-4 py-2.5 border-t border-slate-100 bg-white flex items-center gap-2 overflow-x-auto text-xs">
+        <span className="text-[10px] text-slate-400 uppercase font-bold shrink-0">
           Quick queries:
         </span>
         {quickPrompts.map((q, idx) => (
           <button
             key={idx}
             onClick={() => handleSend(q)}
-            className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white whitespace-nowrap text-[11px] transition-colors border border-slate-700/50"
+            className="px-3 py-1 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 whitespace-nowrap text-[11px] font-semibold transition-colors border border-orange-200/80"
           >
             {q}
           </button>
@@ -230,7 +229,7 @@ export default function AssistantClient() {
       </div>
 
       {/* Input Box */}
-      <div className="p-3 border-t border-slate-800 bg-slate-900/90">
+      <div className="p-3 border-t border-slate-200 bg-white">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -243,12 +242,12 @@ export default function AssistantClient() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about records, pending tasks, or request an action..."
-            className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800/90 border border-slate-700 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 font-medium"
           />
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="p-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white shadow-md shadow-sky-500/25 disabled:opacity-50 transition-all shrink-0"
+            className="p-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-500/25 disabled:opacity-50 transition-all shrink-0"
           >
             <Send className="w-4 h-4" />
           </button>

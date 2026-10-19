@@ -110,22 +110,22 @@ export default function AutomationsClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
             <span>Automation Engine</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 font-semibold border border-sky-500/30">
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-bold border border-orange-200">
               {rules.filter((r) => r.isActive).length} Active
             </span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             Trigger mobile notifications, generate tasks, and sync data based on business rules.
           </p>
         </div>
 
         <button
           onClick={() => setShowModal(true)}
-          className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-semibold shadow-lg shadow-sky-500/25 flex items-center gap-1.5 transition-all self-start sm:self-auto"
+          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold shadow-md shadow-orange-500/20 flex items-center gap-1.5 transition-all self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>New Automation Rule</span>
@@ -137,15 +137,15 @@ export default function AutomationsClient() {
         {loading ? (
           <div className="py-12 text-center text-slate-400 text-xs">Loading rules...</div>
         ) : rules.length === 0 ? (
-          <div className="py-12 text-center glass-panel rounded-2xl p-8 border border-slate-800">
-            <Zap className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-            <h3 className="text-sm font-semibold text-slate-200">No automation rules configured</h3>
-            <p className="text-xs text-slate-400 mt-1 mb-4">
+          <div className="py-12 text-center bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
+            <Zap className="w-10 h-10 text-orange-300 mx-auto mb-3" />
+            <h3 className="text-sm font-bold text-slate-800">No automation rules configured</h3>
+            <p className="text-xs text-slate-500 mt-1 mb-4">
               Create rules to send instant push notifications when records change or tasks become due.
             </p>
             <button
               onClick={() => setShowModal(true)}
-              className="px-4 py-2 rounded-xl bg-sky-500 text-white text-xs font-semibold"
+              className="px-4 py-2 rounded-xl bg-orange-500 text-white text-xs font-bold shadow-sm"
             >
               + Create First Rule
             </button>
@@ -164,17 +164,17 @@ export default function AutomationsClient() {
             return (
               <div
                 key={rule.id}
-                className="glass-panel rounded-2xl p-5 border border-slate-800/80 hover:border-slate-700 transition-all"
+                className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-orange-300 hover:shadow-md transition-all"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-semibold text-slate-100">{rule.name}</h3>
+                      <h3 className="text-sm font-bold text-slate-900">{rule.name}</h3>
                       <span
                         className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                           rule.isActive
-                            ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
-                            : "bg-slate-800 text-slate-400"
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                            : "bg-slate-100 text-slate-600 border border-slate-200"
                         }`}
                       >
                         {rule.isActive ? "ACTIVE" : "PAUSED"}
@@ -184,46 +184,46 @@ export default function AutomationsClient() {
                     {/* Visual workflow steps */}
                     <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                       {/* Trigger Pill */}
-                      <span className="px-2.5 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-300 flex items-center gap-1.5 font-medium">
-                        <Zap className="w-3.5 h-3.5" />
+                      <span className="px-2.5 py-1 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 flex items-center gap-1.5 font-bold">
+                        <Zap className="w-3.5 h-3.5 text-orange-500" />
                         <span>Trigger: {rule.triggerType}</span>
                       </span>
 
-                      <span className="text-slate-600">→</span>
+                      <span className="text-slate-400">→</span>
 
                       {/* Condition Pill */}
                       {condConf.field ? (
-                        <span className="px-2.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-300 flex items-center gap-1.5 font-medium">
+                        <span className="px-2.5 py-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 flex items-center gap-1.5 font-semibold">
                           <span>
                             If {condConf.field} {condConf.operator} &quot;{condConf.value}&quot;
                           </span>
                         </span>
                       ) : (
-                        <span className="px-2.5 py-1 rounded-lg bg-slate-800/80 border border-slate-700/60 text-slate-400 font-medium">
+                        <span className="px-2.5 py-1 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 font-semibold">
                           Always
                         </span>
                       )}
 
-                      <span className="text-slate-600">→</span>
+                      <span className="text-slate-400">→</span>
 
                       {/* Action Pill */}
-                      <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 flex items-center gap-1.5 font-medium">
+                      <span className="px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-1.5 font-bold">
                         {rule.actionType === "create_task" ? (
-                          <CheckSquare className="w-3.5 h-3.5" />
+                          <CheckSquare className="w-3.5 h-3.5 text-emerald-600" />
                         ) : (
-                          <Bell className="w-3.5 h-3.5" />
+                          <Bell className="w-3.5 h-3.5 text-emerald-600" />
                         )}
                         <span>Action: {rule.actionType}</span>
                       </span>
                     </div>
 
                     {/* Recent execution status */}
-                    <div className="mt-3 text-[11px] text-slate-400 flex items-center gap-2">
+                    <div className="mt-3 text-[11px] text-slate-500 flex items-center gap-2 font-medium">
                       <span>Executions logged: {rule.logs?.length || 0}</span>
                       {rule.logs?.[0] && (
                         <span>
                           • Last run:{" "}
-                          <strong className="text-slate-200">
+                          <strong className="text-slate-700">
                             {new Date(rule.logs[0].createdAt).toLocaleTimeString()}
                           </strong>{" "}
                           ({rule.logs[0].status})
@@ -235,17 +235,17 @@ export default function AutomationsClient() {
                   <div className="flex items-center gap-2 shrink-0">
                     <button
                       onClick={() => toggleRule(rule)}
-                      className={`text-xs px-3 py-1.5 rounded-xl font-semibold transition-colors border ${
+                      className={`text-xs px-3 py-1.5 rounded-xl font-bold transition-colors border ${
                         rule.isActive
-                          ? "bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700"
-                          : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                          ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                          : "bg-orange-50 hover:bg-orange-100 text-orange-700 border-orange-200"
                       }`}
                     >
                       {rule.isActive ? "Pause" : "Activate"}
                     </button>
                     <button
                       onClick={() => deleteRule(rule.id)}
-                      className="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -259,18 +259,18 @@ export default function AutomationsClient() {
 
       {/* New Rule Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="glass-panel bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="font-semibold text-slate-100 text-sm">Create Automation Rule</h3>
-              <button onClick={() => setShowModal(false)} className="text-slate-400">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-2xl">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-sm">Create Automation Rule</h3>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-700">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleCreateRule} className="mt-4 space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   Rule Name *
                 </label>
                 <input
@@ -279,17 +279,17 @@ export default function AutomationsClient() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Notify on High Value Lead"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-100 focus:outline-none focus:border-sky-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-orange-500 font-medium"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Trigger</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Trigger</label>
                   <select
                     value={triggerType}
                     onChange={(e) => setTriggerType(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-100 focus:outline-none focus:border-sky-500"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-orange-500 font-medium"
                   >
                     <option value="new_record">New Record Submitted</option>
                     <option value="task_due">Task Approaching Due Date</option>
@@ -298,11 +298,11 @@ export default function AutomationsClient() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Action</label>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Action</label>
                   <select
                     value={actionType}
                     onChange={(e) => setActionType(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-100 focus:outline-none focus:border-sky-500"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-orange-500 font-medium"
                   >
                     <option value="in_app_notification">Send In-App Notification</option>
                     <option value="web_push">Dispatch Web Push Notification</option>
@@ -312,8 +312,8 @@ export default function AutomationsClient() {
               </div>
 
               {/* Optional condition */}
-              <div className="p-3 rounded-xl bg-slate-800/40 border border-slate-800 space-y-2">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase">
+              <div className="p-3 rounded-xl bg-orange-50/50 border border-orange-100 space-y-2">
+                <span className="text-[11px] font-bold text-orange-800 uppercase">
                   Optional Condition (Filter)
                 </span>
                 <div className="grid grid-cols-3 gap-2">
@@ -322,12 +322,12 @@ export default function AutomationsClient() {
                     value={conditionField}
                     onChange={(e) => setConditionField(e.target.value)}
                     placeholder="Field key (e.g. priority)"
-                    className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-100 focus:outline-none"
+                    className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
                   />
                   <select
                     value={conditionOperator}
                     onChange={(e) => setConditionOperator(e.target.value)}
-                    className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none"
+                    className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-orange-500 font-medium"
                   >
                     <option value="equals">Equals</option>
                     <option value="contains">Contains</option>
@@ -338,13 +338,13 @@ export default function AutomationsClient() {
                     value={conditionValue}
                     onChange={(e) => setConditionValue(e.target.value)}
                     placeholder="Target value"
-                    className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-100 focus:outline-none"
+                    className="px-2.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs text-slate-900 focus:outline-none focus:border-orange-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   Notification Title / Task Title
                 </label>
                 <input
@@ -352,21 +352,21 @@ export default function AutomationsClient() {
                   value={actionTitle}
                   onChange={(e) => setActionTitle(e.target.value)}
                   placeholder="e.g. High Priority Inbound Lead!"
-                  className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-100 focus:outline-none focus:border-sky-500"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-orange-500 font-medium"
                 />
               </div>
 
-              <div className="pt-4 border-t border-slate-800 flex justify-end gap-2">
+              <div className="pt-4 border-t border-slate-100 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white text-xs font-semibold shadow-md shadow-sky-500/20"
+                  className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-md shadow-orange-500/20"
                 >
                   Save Rule
                 </button>

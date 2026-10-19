@@ -14,7 +14,6 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // Check if initial setup is needed
     fetch("/api/auth/setup")
       .then((res) => res.json())
       .then((data) => {
@@ -60,18 +59,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#090d16] flex items-center justify-center p-4 selection:bg-sky-500/30">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50/50 via-slate-50 to-amber-50/40 flex items-center justify-center p-4 selection:bg-orange-500/20">
       <div className="w-full max-w-md">
         {/* Brand Card */}
-        <div className="glass-panel border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-2xl bg-[#0c1222]/90">
+        <div className="bg-white border border-orange-100/80 rounded-3xl p-6 sm:p-8 shadow-xl shadow-orange-500/5">
           <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/25 mx-auto mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/25 mx-auto mb-4">
               <Sparkles className="w-7 h-7 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-100 tracking-tight">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
               {isSetup ? "Setup Business Manager" : "AI Business Manager"}
             </h1>
-            <p className="text-xs text-slate-400 mt-1.5">
+            <p className="text-xs text-slate-500 mt-1.5 font-medium">
               {isSetup
                 ? "Create your Owner account to initialize your private workspace"
                 : "Personal Operations, Real-Time Notifications & AI Assistant"}
@@ -79,7 +78,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="mb-6 p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium">
+            <div className="mb-6 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
               {error}
             </div>
           )}
@@ -87,7 +86,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSetup && (
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
                   Your Full Name
                 </label>
                 <input
@@ -96,41 +95,41 @@ export default function LoginPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Aditya Sharma"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="owner@business.local"
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 mb-1.5">
                 Password
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                  className="w-full pl-10 pr-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all"
                 />
               </div>
             </div>
@@ -138,7 +137,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold text-sm shadow-lg shadow-sky-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-sm shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? (
                 "Authenticating..."
@@ -152,13 +151,13 @@ export default function LoginPage() {
           </form>
 
           {!isSetup && (
-            <div className="mt-6 pt-5 border-t border-slate-800 text-center">
+            <div className="mt-6 pt-5 border-t border-slate-100 text-center">
               <button
                 type="button"
                 onClick={fillOwnerCredentials}
-                className="text-xs text-sky-400 hover:text-sky-300 font-medium inline-flex items-center gap-1.5 transition-colors"
+                className="text-xs text-orange-600 hover:text-orange-700 font-bold inline-flex items-center gap-1.5 transition-colors"
               >
-                <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-orange-500" />
                 Quick-fill Seeded Owner Credentials
               </button>
             </div>
@@ -166,9 +165,9 @@ export default function LoginPage() {
         </div>
 
         {/* Security badge footer */}
-        <div className="text-center mt-6 flex items-center justify-center gap-1.5 text-xs text-slate-400">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Local SQLite Database • ₹0 Monthly Operating Cost</span>
+        <div className="text-center mt-6 flex items-center justify-center gap-1.5 text-xs text-slate-500">
+          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <span>Local SQLite Database • ₹0 Operating Cost</span>
         </div>
       </div>
     </div>

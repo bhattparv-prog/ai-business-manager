@@ -151,22 +151,22 @@ export default function RecordExplorerClient({ slug }: RecordExplorerProps) {
   return (
     <div className="space-y-6">
       {/* Top Navigation & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div className="flex items-center gap-3">
           <Link
             href="/collections"
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 transition-colors"
+            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-850 hover:border-orange-300 transition-colors shadow-sm"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-100 flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
               <span>{collection?.name || slug}</span>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-400 font-semibold border border-sky-500/30">
+              <span className="text-xs px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-700 font-bold border border-orange-200">
                 {records.length} Records
               </span>
             </h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5 font-medium">
               {collection?.description || "Dynamic records explorer"}
             </p>
           </div>
@@ -175,23 +175,23 @@ export default function RecordExplorerClient({ slug }: RecordExplorerProps) {
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
             onClick={exportCSV}
-            className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700/80 hover:bg-slate-800 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:border-orange-300 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3.5 h-3.5 text-orange-500" />
             <span>Export CSV</span>
           </button>
 
           <Link
             href="/sources"
-            className="px-3 py-2 rounded-xl bg-slate-900 border border-slate-700/80 hover:bg-slate-800 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:border-orange-300 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
             <span>Import Data</span>
           </Link>
 
           <button
             onClick={openAddModal}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-semibold shadow-lg shadow-sky-500/25 flex items-center gap-1.5 transition-all"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold shadow-md shadow-orange-500/20 flex items-center gap-1.5 transition-all"
           >
             <Plus className="w-4 h-4" />
             <span>Add Record</span>
@@ -200,40 +200,40 @@ export default function RecordExplorerClient({ slug }: RecordExplorerProps) {
       </div>
 
       {feedback && (
-        <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center gap-2">
-          <CheckCircle className="w-4 h-4" />
+        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 shadow-sm">
+          <CheckCircle className="w-4 h-4 text-emerald-600" />
           <span>{feedback}</span>
         </div>
       )}
 
       {/* Search Input */}
       <div className="relative max-w-md">
-        <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3" />
+        <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search records across all fields..."
-          className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500"
+          className="w-full pl-10 pr-4 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 shadow-sm"
         />
       </div>
 
       {/* Dynamic Data Table */}
-      <div className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900/90 border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase tracking-wider font-bold">
               <tr>
                 {collection?.fields?.map((f: any) => (
                   <th key={f.key} className="py-3 px-4">
                     {f.name}
                   </th>
                 ))}
-                <th className="py-3 px-4 text-slate-500">Created</th>
+                <th className="py-3 px-4 text-slate-400">Created</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100">
               {loading ? (
                 <tr>
                   <td colSpan={10} className="py-12 text-center text-slate-400">
@@ -248,26 +248,26 @@ export default function RecordExplorerClient({ slug }: RecordExplorerProps) {
                 </tr>
               ) : (
                 records.map((rec) => (
-                  <tr key={rec.id} className="hover:bg-slate-800/30 transition-colors">
+                  <tr key={rec.id} className="hover:bg-orange-50/30 transition-colors">
                     {collection?.fields?.map((f: any) => (
-                      <td key={f.key} className="py-3 px-4 text-slate-200">
+                      <td key={f.key} className="py-3 px-4 text-slate-800">
                         {renderFieldValue(rec[f.key], f.type)}
                       </td>
                     ))}
-                    <td className="py-3 px-4 text-slate-400 text-[11px]">
+                    <td className="py-3 px-4 text-slate-500 text-[11px]">
                       {new Date(rec.createdAt).toLocaleDateString()}
                     </td>
                     <td className="py-3 px-4 text-right space-x-1">
                       <button
                         onClick={() => openEditModal(rec)}
-                        className="p-1 rounded text-slate-400 hover:text-sky-300 hover:bg-slate-800"
+                        className="p-1 rounded-lg text-slate-400 hover:text-orange-600 hover:bg-orange-50"
                         title="Edit record"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleDeleteRecord(rec.id)}
-                        className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
+                        className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
                         title="Delete record"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -283,15 +283,15 @@ export default function RecordExplorerClient({ slug }: RecordExplorerProps) {
 
       {/* Dynamic Add / Edit Record Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="glass-panel bg-slate-900 border border-slate-700 rounded-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 className="font-semibold text-slate-100 text-sm">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white border border-slate-200 rounded-3xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-sm">
                 {editRecord ? "Edit Record" : `Add Record to ${collection?.name}`}
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
-                className="text-slate-400 hover:text-slate-200"
+                className="text-slate-400 hover:text-slate-700"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -300,8 +300,8 @@ export default function RecordExplorerClient({ slug }: RecordExplorerProps) {
             <form onSubmit={handleSaveRecord} className="mt-4 space-y-3.5">
               {collection?.fields?.map((f: any) => (
                 <div key={f.key}>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    {f.name} {f.isRequired && <span className="text-rose-400">*</span>}
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    {f.name} {f.isRequired && <span className="text-orange-600">*</span>}
                   </label>
                   {renderInputField(f, formData[f.key], (val) =>
                     setFormData({ ...formData, [f.key]: val })
@@ -309,18 +309,18 @@ export default function RecordExplorerClient({ slug }: RecordExplorerProps) {
                 </div>
               ))}
 
-              <div className="pt-4 border-t border-slate-800 flex justify-end gap-2">
+              <div className="pt-4 border-t border-slate-100 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-200"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-white text-xs font-semibold shadow-md shadow-sky-500/20 disabled:opacity-50"
+                  className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold shadow-md shadow-orange-500/20 disabled:opacity-50"
                 >
                   {submitting ? "Saving..." : editRecord ? "Update Record" : "Save Record"}
                 </button>
@@ -334,15 +334,15 @@ export default function RecordExplorerClient({ slug }: RecordExplorerProps) {
 }
 
 function renderFieldValue(val: any, type: string) {
-  if (val === undefined || val === null || val === "") return <span className="text-slate-600">—</span>;
+  if (val === undefined || val === null || val === "") return <span className="text-slate-400">—</span>;
 
   if (type === "boolean") {
     return val ? (
-      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
+      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
         YES
       </span>
     ) : (
-      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
         NO
       </span>
     );
@@ -350,17 +350,17 @@ function renderFieldValue(val: any, type: string) {
 
   if (type === "select") {
     return (
-      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-300 border border-sky-500/20">
+      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-orange-50 text-orange-700 border border-orange-200">
         {String(val)}
       </span>
     );
   }
 
   if (type === "number") {
-    return <span className="font-mono text-slate-100">{Number(val).toLocaleString()}</span>;
+    return <span className="font-mono font-semibold text-slate-800">{Number(val).toLocaleString()}</span>;
   }
 
-  return <span>{String(val)}</span>;
+  return <span className="font-medium text-slate-800">{String(val)}</span>;
 }
 
 function renderInputField(field: any, value: any, onChange: (val: any) => void) {
@@ -377,7 +377,7 @@ function renderInputField(field: any, value: any, onChange: (val: any) => void) 
         required={field.isRequired}
         value={currentVal}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-100 focus:outline-none focus:border-sky-500"
+        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-850 focus:outline-none focus:bg-white focus:border-orange-500 font-medium"
       >
         <option value="">Select option...</option>
         {options.map((opt) => (
@@ -396,7 +396,7 @@ function renderInputField(field: any, value: any, onChange: (val: any) => void) 
         value={currentVal}
         onChange={(e) => onChange(e.target.value)}
         rows={3}
-        className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-100 focus:outline-none focus:border-sky-500"
+        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-850 focus:outline-none focus:bg-white focus:border-orange-500 font-medium"
       />
     );
   }
@@ -408,9 +408,9 @@ function renderInputField(field: any, value: any, onChange: (val: any) => void) 
           type="checkbox"
           checked={Boolean(value)}
           onChange={(e) => onChange(e.target.checked)}
-          className="rounded text-sky-500 focus:ring-0 w-4 h-4 bg-slate-800 border-slate-700"
+          className="rounded text-orange-500 focus:ring-0 w-4 h-4 bg-slate-100 border-slate-300"
         />
-        <span className="text-xs text-slate-300">Enabled / Active</span>
+        <span className="text-xs font-semibold text-slate-700">Enabled / Active</span>
       </label>
     );
   }
@@ -421,7 +421,7 @@ function renderInputField(field: any, value: any, onChange: (val: any) => void) 
       required={field.isRequired}
       value={currentVal}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-xs text-slate-100 focus:outline-none focus:border-sky-500"
+      className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-850 focus:outline-none focus:bg-white focus:border-orange-500 font-medium"
     />
   );
 }
