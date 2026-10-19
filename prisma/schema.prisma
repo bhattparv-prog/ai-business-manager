@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String             @id @default(cuid())
+  email        String             @unique
+  passwordHash String
+  name         String
+  role         String             @default("EMPLOYEE") // "OWNER" | "EMPLOYEE"
+  active       Boolean            @default(true)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  notifications PushSubscription[]
+  notificationsList Notification[]
+  tasks        Task[]             @relation("AssignedTasks")
+  createdTasks Task[]             @relation("CreatedTasks")
+  chatSessions AIChatSession[]
+  auditLogs    AuditLog[]
+}
+
+model Invitation {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  role      String    @default("EMPLOYEE")
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model CollectionDefinition {
+  id          String            @id @default(cuid())
+  name        String
+  slug        String            @unique
+  description String?
+  icon        String            @default("Folder")
+  isSystem    Boolean           @default(false)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  fields      FieldDefinition[]
+  records     RecordItem[]
+}
+
+model FieldDefinition {
+  id           String               @id @default(cuid())
+  collectionId String
+  name         String
+  key          String
+  type         String               // "text" | "number" | "date" | "select" | "boolean" | "email" | "phone" | "textarea"
+  options      String?              // JSON array for dropdown options
+  isRequired   Boolean              @default(false)
+  defaultValue String?
+  orderIndex   Int                  @default(0)
+
+  collection   CollectionDefinition @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, key])
+}
+
+model RecordItem {
+  id           String               @id @default(cuid())
+  collectionId String
+  data         String               // JSON string of all field values
+  createdById  String?
+  updatedById  String?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  collection   CollectionDefinition @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+}
+
+model Task {
+  id              String    @id @default(cuid())
+  title           String
+  description     String?
+  status          String    @default("pending") // "pending" | "in_progress" | "completed" | "cancelled"
+  priority        String    @default("medium")  // "low" | "medium" | "high" | "urgent"
+  dueDate         DateTime?
+  assignedToId    String?
+  relatedRecordId String?
+  createdById     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  assignedTo      User?     @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdBy       User?     @relation("CreatedTasks", fields: [createdById], references: [id], onDelete: SetNull)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String?  // null means broadcast to all users
+  title     String
+  message   String
+  type      String   @default("info") // "info" | "warning" | "success" | "alert"
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DataSource {
+  id           String        @id @default(cuid())
+  name         String
+  type         String        // "google_sheets" | "csv"
+  config       String        // JSON configuration
+  lastSyncAt   DateTime?
+  status       String        @default("idle") // "idle" | "syncing" | "success" | "error"
+  errorDetails String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  history      SyncHistory[]
+}
+
+model SyncHistory {
+  id               String     @id @default(cuid())
+  dataSourceId     String
+  recordsProcessed Int        @default(0)
+  recordsAdded     Int        @default(0)
+  recordsUpdated   Int        @default(0)
+  status           String     // "success" | "partial" | "failed"
+  error            String?
+  createdAt        DateTime   @default(now())
+
+  dataSource       DataSource @relation(fields: [dataSourceId], references: [id], onDelete: Cascade)
+}
+
+model AutomationRule {
+  id              String          @id @default(cuid())
+  name            String
+  triggerType     String          // "new_record" | "task_due" | "record_threshold"
+  triggerConfig   String          // JSON
+  conditionConfig String          // JSON
+  actionType      String          // "in_app_notification" | "web_push" | "create_task"
+  actionConfig    String          // JSON
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  logs            AutomationLog[]
+}
+
+model AutomationLog {
+  id        String         @id @default(cuid())
+  ruleId    String
+  status    String         // "success" | "failed" | "skipped"
+  details   String?        // JSON
+  createdAt DateTime       @default(now())
+
+  rule      AutomationRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+}
+
+model AIChatSession {
+  id        String          @id @default(cuid())
+  userId    String
+  title     String          @default("New Conversation")
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  AIChatMessage[]
+}
+
+model AIChatMessage {
+  id         String        @id @default(cuid())
+  sessionId  String
+  role       String        // "user" | "assistant" | "system"
+  content    String
+  actionData String?       // JSON for proposed/executed actions
+  createdAt  DateTime      @default(now())
+
+  session    AIChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  details    String?  // JSON
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Setting {
+  key       String   @id
+  value     String   // JSON string
+  updatedAt DateTime @updatedAt
+}
