@@ -40,23 +40,46 @@ export default function DashboardClient() {
   const [showFilterPills, setShowFilterPills] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0); // Today is 0
+  const [lastSyncTime, setLastSyncTime] = useState<string>("");
+  const [isManualSyncing, setIsManualSyncing] = useState(false);
 
   useEffect(() => {
-    fetchStats();
+    fetchStats(true);
+    // "aur live apne aap ho" - Auto poll every 10 seconds in background
+    const timer = setInterval(() => {
+      fetchStats(false);
+    }, 10000);
+    return () => clearInterval(timer);
   }, [filter]);
 
-  async function fetchStats() {
-    setLoading(true);
+  async function fetchStats(isInitial = false) {
+    if (isInitial) setLoading(true);
     try {
-      const res = await fetch(`/api/dashboard/stats?filter=${filter}`);
+      const res = await fetch(`/api/dashboard/stats?filter=${filter}&autoSync=true`);
       if (res.ok) {
         const json = await res.json();
         setData(json);
+        const now = new Date();
+        setLastSyncTime(
+          now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" })
+        );
       }
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      if (isInitial) setLoading(false);
+    }
+  }
+
+  async function handleManualSync() {
+    setIsManualSyncing(true);
+    try {
+      await fetch("/api/sources/google-sheets", { method: "POST" });
+      await fetchStats(false);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsManualSyncing(false);
     }
   }
 
@@ -71,12 +94,15 @@ export default function DashboardClient() {
     : "BO";
 
   const metrics = data?.metrics || {
+    totalUsers: 0,
+    totalBookings: 0,
     totalRecords: 0,
     allTimeRecords: 0,
     totalCollections: 0,
     totalTasks: 0,
     pendingTasks: 0,
     urgentTasks: 0,
+    completedTasks: 0,
     unreadNotifications: 0,
     dataSourcesConnected: 0,
   };
@@ -220,7 +246,7 @@ export default function DashboardClient() {
             ))}
           </div>
           <button
-            onClick={fetchStats}
+            onClick={() => fetchStats(false)}
             title="Refresh metrics"
             className="p-1.5 rounded-full text-slate-400 hover:text-orange-600 hover:bg-orange-50 transition-colors"
           >
@@ -230,19 +256,43 @@ export default function DashboardClient() {
       )}
 
       {/* =========================================================================
-          3. 2x2 ROUNDED METRIC CARDS GRID WITH DIAGONAL ARROWS (↗)
+          REAL-TIME LIVE AUTO-SYNC BANNER ("aur live apne aap ho")
+          ========================================================================= */}
+      <div className="flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-white border border-slate-200/90 shadow-xs">
+        <div className="flex items-center gap-2.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+          <span className="text-xs sm:text-sm font-extrabold text-slate-900">
+            Live Stream Auto-Sync Active
+          </span>
+          <span className="text-[11px] text-slate-500 hidden sm:inline">
+            (Auto-polls every 10s {lastSyncTime ? `• Last checked: ${lastSyncTime}` : ""})
+          </span>
+        </div>
+
+        <button
+          onClick={handleManualSync}
+          disabled={isManualSyncing}
+          className="text-[11px] font-bold text-orange-600 hover:text-orange-700 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-full border border-orange-200 flex items-center gap-1.5 transition-all disabled:opacity-50"
+        >
+          <RefreshCw className={`w-3 h-3 ${isManualSyncing ? "animate-spin" : ""}`} />
+          <span>{isManualSyncing ? "Syncing..." : "Sync Sheet Now"}</span>
+        </button>
+      </div>
+
+      {/* =========================================================================
+          3. 2x2 ROUNDED METRIC CARDS GRID (Users, Bookings, Collections, Tasks)
              (Directly matches 6333b6ea51bbab7657b069549da1e105.jpg in White & Orange)
           ========================================================================= */}
       <div className="grid grid-cols-2 gap-3.5 sm:gap-4">
-        {/* CARD 1: Highlight Card (Top Left) - Radiant Orange Gradient */}
+        {/* CARD 1: Total Users / Visitors (Top Left) - Radiant Orange Gradient */}
         <Link
           href={hasSheet ? "/reports?tab=live-sheet" : "/collections"}
-          className="p-4 sm:p-6 rounded-[26px] bg-gradient-to-br from-orange-500 via-orange-600 to-amber-500 text-white shadow-lg shadow-orange-500/25 relative overflow-hidden group hover:scale-[1.01] transition-all flex flex-col justify-between min-h-[150px] sm:min-h-[175px]"
+          className="p-4 sm:p-6 rounded-[26px] bg-gradient-to-br from-orange-500 via-orange-600 to-amber-500 text-white shadow-lg shadow-orange-500/25 relative overflow-hidden group hover:scale-[1.01] transition-all flex flex-col justify-between min-h-[155px] sm:min-h-[180px]"
         >
-          {/* Top row: Icon + Diagonal Arrow Button (↗) */}
+          {/* Top row: Users Icon + White Diagonal Arrow Button (↗) */}
           <div className="flex items-start justify-between">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
-              <FileSpreadsheet className="w-5 h-5 sm:w-6 sm:h-6" />
+              <Users className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white text-orange-600 shadow-md flex items-center justify-center group-hover:scale-110 transition-transform">
               <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
@@ -252,29 +302,29 @@ export default function DashboardClient() {
           {/* Bottom row: Label & Big Stat */}
           <div className="mt-4">
             <span className="text-[11px] sm:text-xs font-semibold text-orange-100 block">
-              {hasSheet ? "Total Live Records" : "Total Records"}
+              Total Users / Visitors
             </span>
             <div className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white mt-0.5">
-              {displayTotalRecords.toLocaleString()}
+              {metrics.totalUsers}
             </div>
             <div className="flex items-center gap-1.5 mt-1">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               <span className="text-[10px] sm:text-[11px] text-orange-100 font-medium">
-                {hasSheet ? "Live Google Sheet stream" : "Isolated in SQLite vault"}
+                Unique client sessions tracked
               </span>
             </div>
           </div>
         </Link>
 
-        {/* CARD 2: High-Intent / Financial (Top Right) - Crisp White */}
+        {/* CARD 2: Total Bookings (Top Right) - Crisp White */}
         <Link
           href="/reports"
-          className="p-4 sm:p-6 rounded-[26px] bg-white border border-slate-200/90 shadow-sm hover:border-orange-200 hover:shadow-md transition-all flex flex-col justify-between min-h-[150px] sm:min-h-[175px] group"
+          className="p-4 sm:p-6 rounded-[26px] bg-white border border-slate-200/90 shadow-sm hover:border-orange-200 hover:shadow-md transition-all flex flex-col justify-between min-h-[155px] sm:min-h-[180px] group"
         >
-          {/* Top row: Cash / Conversion Icon + Dark Diagonal Arrow (↗) */}
+          {/* Top row: Bookings Icon + Dark Diagonal Arrow (↗) */}
           <div className="flex items-start justify-between">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 shadow-xs">
-              <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
+              <Sparkles className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-900 text-white flex items-center justify-center group-hover:bg-orange-500 group-hover:scale-110 transition-all">
               <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
@@ -284,21 +334,21 @@ export default function DashboardClient() {
           {/* Bottom row: Label & Big Stat */}
           <div className="mt-4">
             <span className="text-[11px] sm:text-xs font-semibold text-slate-500 block">
-              High-Intent Actions
+              Total Bookings & Inquiries
             </span>
             <div className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mt-0.5">
-              {hasSheet ? `₹${(highIntentCount * 100).toLocaleString()}` : highIntentCount}
+              {metrics.totalBookings}
             </div>
             <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium mt-1 truncate">
-              {hasSheet ? `${highIntentCount} booking actions logged` : "Workflow triggers & actions"}
+              High-intent Puja, Seva & requests
             </div>
           </div>
         </Link>
 
-        {/* CARD 3: Custom Collections (Bottom Left) - Crisp White */}
+        {/* CARD 3: Total Collections (Bottom Left) - Crisp White */}
         <Link
           href="/collections"
-          className="p-4 sm:p-6 rounded-[26px] bg-white border border-slate-200/90 shadow-sm hover:border-orange-200 hover:shadow-md transition-all flex flex-col justify-between min-h-[150px] sm:min-h-[175px] group"
+          className="p-4 sm:p-6 rounded-[26px] bg-white border border-slate-200/90 shadow-sm hover:border-orange-200 hover:shadow-md transition-all flex flex-col justify-between min-h-[155px] sm:min-h-[180px] group"
         >
           {/* Top row: Folder Icon + Dark Diagonal Arrow (↗) */}
           <div className="flex items-start justify-between">
@@ -313,21 +363,21 @@ export default function DashboardClient() {
           {/* Bottom row: Label & Big Stat */}
           <div className="mt-4">
             <span className="text-[11px] sm:text-xs font-semibold text-slate-500 block">
-              Active Collections
+              Total Collection Records
             </span>
             <div className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mt-0.5">
-              {metrics.totalCollections}
+              {metrics.allTimeRecords.toLocaleString()}
             </div>
             <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium mt-1 truncate">
-              Custom forms & data schemas
+              Across {metrics.totalCollections} custom collections
             </div>
           </div>
         </Link>
 
-        {/* CARD 4: Pending Tasks / Operations (Bottom Right) - Crisp White */}
+        {/* CARD 4: Operations & Tasks (Bottom Right) - Crisp White */}
         <Link
           href="/tasks"
-          className="p-4 sm:p-6 rounded-[26px] bg-white border border-slate-200/90 shadow-sm hover:border-orange-200 hover:shadow-md transition-all flex flex-col justify-between min-h-[150px] sm:min-h-[175px] group"
+          className="p-4 sm:p-6 rounded-[26px] bg-white border border-slate-200/90 shadow-sm hover:border-orange-200 hover:shadow-md transition-all flex flex-col justify-between min-h-[155px] sm:min-h-[180px] group"
         >
           {/* Top row: Tasks Icon + Dark Diagonal Arrow (↗) */}
           <div className="flex items-start justify-between">
@@ -342,15 +392,13 @@ export default function DashboardClient() {
           {/* Bottom row: Label & Big Stat */}
           <div className="mt-4">
             <span className="text-[11px] sm:text-xs font-semibold text-slate-500 block">
-              Pending Action Items
+              Pending Tasks & Actions
             </span>
             <div className="text-2xl sm:text-4xl font-extrabold tracking-tight text-amber-600 mt-0.5">
               {metrics.pendingTasks}
             </div>
             <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium mt-1 truncate">
-              {metrics.urgentTasks > 0
-                ? `${metrics.urgentTasks} urgent priority tasks`
-                : "All operations on schedule"}
+              {metrics.urgentTasks} urgent • {metrics.completedTasks || 0} completed
             </div>
           </div>
         </Link>
@@ -367,7 +415,7 @@ export default function DashboardClient() {
           </h2>
           <span className="text-[11px] font-bold text-orange-600 flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
-            Live Sync Verified
+            Real-Time Auto-Stream
           </span>
         </div>
 
@@ -379,40 +427,40 @@ export default function DashboardClient() {
             </div>
             <div>
               <div className="text-[10px] sm:text-[11px] font-semibold text-slate-500 leading-tight">
-                Live Active
+                Live Records
               </div>
               <div className="text-base sm:text-lg font-extrabold text-slate-900">
-                {displayTotalRecords.toLocaleString()}
+                {metrics.allTimeRecords.toLocaleString()}
               </div>
             </div>
           </div>
 
-          {/* Segment 2: Pending Tasks (Amber) */}
+          {/* Segment 2: Bookings (Amber) */}
           <div className="flex items-center gap-2.5 px-2 sm:px-3">
             <div className="w-7 h-7 rounded-full bg-amber-50 text-amber-600 border border-amber-100 flex items-center justify-center shrink-0">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-[10px] sm:text-[11px] font-semibold text-slate-500 leading-tight">
+                Bookings Logged
+              </div>
+              <div className="text-base sm:text-lg font-extrabold text-amber-600">
+                {metrics.totalBookings}
+              </div>
+            </div>
+          </div>
+
+          {/* Segment 3: Pending Tasks (Rose/Orange) */}
+          <div className="flex items-center gap-2.5 px-2 sm:px-3">
+            <div className="w-7 h-7 rounded-full bg-orange-50 text-orange-600 border border-orange-100 flex items-center justify-center shrink-0">
               <Clock className="w-4 h-4" />
             </div>
             <div>
               <div className="text-[10px] sm:text-[11px] font-semibold text-slate-500 leading-tight">
                 Pending Tasks
               </div>
-              <div className="text-base sm:text-lg font-extrabold text-amber-600">
+              <div className="text-base sm:text-lg font-extrabold text-orange-600">
                 {metrics.pendingTasks}
-              </div>
-            </div>
-          </div>
-
-          {/* Segment 3: Urgent / Attention (Rose/Red) */}
-          <div className="flex items-center gap-2.5 px-2 sm:px-3">
-            <div className="w-7 h-7 rounded-full bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
-              <AlertCircle className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="text-[10px] sm:text-[11px] font-semibold text-slate-500 leading-tight">
-                Urgent Attention
-              </div>
-              <div className="text-base sm:text-lg font-extrabold text-rose-600">
-                {metrics.urgentTasks}
               </div>
             </div>
           </div>

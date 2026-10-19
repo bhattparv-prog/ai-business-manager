@@ -56,7 +56,7 @@ export async function GET(req: Request) {
     // 3. Data sources for THIS user only
     const dataSources = await prisma.dataSource.findMany({
       where: { userId: session.userId },
-      select: { id: true, name: true, type: true, status: true, lastSyncAt: true },
+      select: { id: true, name: true, type: true, status: true, lastSyncAt: true, config: true },
     });
 
     // 4. Notifications unread for THIS user only
@@ -83,10 +83,40 @@ export async function GET(req: Request) {
       include: { assignedTo: { select: { name: true } } },
     });
 
-    // 8. If google_sheet_events exists, get sample recent events
+    // 8. If google_sheet_events exists, get sample recent events and compute users & bookings
     const sheetCol = collections.find((c) => c.slug === "google_sheet_events");
     let sheetStats: any = null;
     let recentSheetEvents: any[] = [];
+    let uniqueUsersCount = 0;
+    let bookingsCount = 0;
+
+    // Optional background auto-sync if requested
+    const autoSync = url.searchParams.get("autoSync");
+    const googleSheetSource = dataSources.find((d) => d.type === "google_sheets");
+    if (autoSync === "true" && googleSheetSource) {
+      const nowMs = Date.now();
+      const lastSyncMs = googleSheetSource.lastSyncAt
+        ? new Date(googleSheetSource.lastSyncAt).getTime()
+        : 0;
+      // If last sync was > 30 seconds ago, trigger background sync
+      if (nowMs - lastSyncMs > 30 * 1000) {
+        import("@/lib/google-sheets").then(({ syncGoogleSheet }) => {
+          let cfg: any = {};
+          try {
+            cfg = JSON.parse(googleSheetSource.config);
+          } catch {}
+          const sheetUrl =
+            cfg.sheetUrl ||
+            "https://docs.google.com/spreadsheets/d/1cMSVpPyG1SzAiCVqa7_YvsrFVIVIGgmBEtCTpuRQYEg/edit?gid=281748641#gid=281748641";
+          syncGoogleSheet({
+            sheetUrl,
+            collectionSlug: "google_sheet_events",
+            collectionName: "Live Website Event Stream",
+            userId: session.userId,
+          }).catch(console.error);
+        });
+      }
+    }
 
     if (sheetCol && sheetCol._count.records > 0) {
       const recentRaw = await prisma.recordItem.findMany({
@@ -120,9 +150,40 @@ export async function GET(req: Request) {
         }
       });
 
+      // Calculate distinct visitors / sessions and booking intent requests
+      const allSheetRecords = await prisma.recordItem.findMany({
+        where: { collection: { userId: session.userId, slug: "google_sheet_events" } },
+        select: { data: true },
+      });
+
+      const userSessions = new Set<string>();
+      for (const r of allSheetRecords) {
+        try {
+          const item = JSON.parse(r.data);
+          if (item.session_id) userSessions.add(item.session_id);
+          const text = (item.clicked_text_label || item.clicked_text || item.label || "").toLowerCase();
+          if (
+            text.includes("book") ||
+            text.includes("puja") ||
+            text.includes("pooja") ||
+            text.includes("seva") ||
+            text.includes("acharya") ||
+            text.includes("₹") ||
+            text.includes("instant") ||
+            text.includes("consult")
+          ) {
+            bookingsCount++;
+          }
+        } catch {}
+      }
+      uniqueUsersCount = userSessions.size;
+
       sheetStats = {
         totalEvents: sheetCol._count.records,
+        uniqueUsers: uniqueUsersCount,
+        totalBookings: bookingsCount,
         hasData: true,
+        lastSyncAt: googleSheetSource?.lastSyncAt || null,
       };
     }
 
@@ -134,6 +195,10 @@ export async function GET(req: Request) {
       count: c._count.records,
     }));
 
+    const completedTasks = await prisma.task.count({
+      where: { userId: session.userId, status: "completed" },
+    });
+
     return NextResponse.json({
       user: {
         name: session.name || "Business Owner",
@@ -141,12 +206,15 @@ export async function GET(req: Request) {
         role: session.role,
       },
       metrics: {
+        totalUsers: uniqueUsersCount || 1,
+        totalBookings: bookingsCount,
         totalRecords,
         allTimeRecords,
         totalCollections: collections.length,
         totalTasks,
         pendingTasks,
         urgentTasks,
+        completedTasks,
         unreadNotifications,
         dataSourcesConnected: dataSources.length,
       },
