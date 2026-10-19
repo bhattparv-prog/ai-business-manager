@@ -29,7 +29,11 @@ export default function RecordExplorerClient({ slug }: RecordExplorerProps) {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+
   useEffect(() => {
+    setPage(1);
     fetchRecords();
   }, [slug, search]);
 
@@ -247,38 +251,94 @@ export default function RecordExplorerClient({ slug }: RecordExplorerProps) {
                   </td>
                 </tr>
               ) : (
-                records.map((rec) => (
-                  <tr key={rec.id} className="hover:bg-orange-50/30 transition-colors">
-                    {collection?.fields?.map((f: any) => (
-                      <td key={f.key} className="py-3 px-4 text-slate-800">
-                        {renderFieldValue(rec[f.key], f.type)}
+                records
+                  .slice((page - 1) * pageSize, page * pageSize)
+                  .map((rec) => (
+                    <tr key={rec.id} className="hover:bg-orange-50/30 transition-colors">
+                      {collection?.fields?.map((f: any) => (
+                        <td key={f.key} className="py-3 px-4 text-slate-800">
+                          {renderFieldValue(rec[f.key], f.type)}
+                        </td>
+                      ))}
+                      <td className="py-3 px-4 text-slate-500 text-[11px]">
+                        {new Date(rec.createdAt).toLocaleDateString()}
                       </td>
-                    ))}
-                    <td className="py-3 px-4 text-slate-500 text-[11px]">
-                      {new Date(rec.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 px-4 text-right space-x-1">
-                      <button
-                        onClick={() => openEditModal(rec)}
-                        className="p-1 rounded-lg text-slate-400 hover:text-orange-600 hover:bg-orange-50"
-                        title="Edit record"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteRecord(rec.id)}
-                        className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-                        title="Delete record"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      <td className="py-3 px-4 text-right space-x-1">
+                        <button
+                          onClick={() => openEditModal(rec)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-orange-600 hover:bg-orange-50"
+                          title="Edit record"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteRecord(rec.id)}
+                          className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                          title="Delete record"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination Controls */}
+        {records.length > 0 && (
+          <div className="p-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+            <div className="flex items-center gap-2">
+              <span>
+                Showing <span className="font-bold text-slate-900">{(page - 1) * pageSize + 1}</span> to{" "}
+                <span className="font-bold text-slate-900">
+                  {Math.min(page * pageSize, records.length)}
+                </span>{" "}
+                of <span className="font-bold text-slate-900">{records.length.toLocaleString()}</span> records
+              </span>
+              <span className="text-slate-300">|</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] text-slate-500">Per page:</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  className="px-2 py-0.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold focus:outline-none focus:border-orange-500"
+                >
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={250}>250</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-orange-300 disabled:opacity-40 disabled:hover:border-slate-200 font-semibold text-xs"
+              >
+                Previous
+              </button>
+              <span className="px-3 py-1 font-bold text-slate-700">
+                Page {page} of {Math.ceil(records.length / pageSize) || 1}
+              </span>
+              <button
+                onClick={() =>
+                  setPage((p) => Math.min(Math.ceil(records.length / pageSize) || 1, p + 1))
+                }
+                disabled={page >= Math.ceil(records.length / pageSize)}
+                className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 hover:border-orange-300 disabled:opacity-40 disabled:hover:border-slate-200 font-semibold text-xs"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Dynamic Add / Edit Record Modal */}
