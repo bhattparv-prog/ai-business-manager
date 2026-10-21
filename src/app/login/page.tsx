@@ -41,6 +41,31 @@ export default function LoginPage() {
     }
   }
 
+  async function handleDirectParvLogin() {
+    setLoading(true);
+    setError("");
+    setEmail("upaadhya1@gmail.com");
+    setPassword("Owner@123456");
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: "upaadhya1@gmail.com", password: "Owner@123456" }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Authentication failed");
+      }
+
+      window.location.href = "/dashboard";
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
+  }
+
   function handleFillParv() {
     setMode("signin");
     setEmail("upaadhya1@gmail.com");
@@ -134,24 +159,20 @@ export default function LoginPage() {
           into real progress.
         </p>
 
-        {/* Quick Fill Buttons for Mobile Convenience */}
-        <div className="w-full flex items-center justify-center gap-2 mt-5">
+        {/* Quick 1-Tap Login Button for Parv */}
+        <div className="w-full mt-5 space-y-2">
           <button
             type="button"
-            onClick={handleFillParv}
-            className="px-3.5 py-1.5 rounded-full bg-orange-50 hover:bg-orange-100 border border-orange-200/90 text-orange-700 text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs active:scale-95"
+            disabled={loading}
+            onClick={handleDirectParvLogin}
+            className="w-full py-3 rounded-2xl bg-gradient-to-r from-orange-500/15 via-amber-500/20 to-orange-500/15 hover:from-orange-500/25 hover:to-amber-500/30 border border-orange-300 text-orange-950 font-extrabold text-xs flex items-center justify-center gap-2 shadow-xs transition-all active:scale-[0.98]"
           >
-            <Sparkles className="w-3.5 h-3.5 text-orange-600" />
-            <span>Fill upaadhya1</span>
+            <Sparkles className="w-4 h-4 text-orange-600 animate-pulse" />
+            <span>1-Tap Login: upaadhya1@gmail.com</span>
           </button>
-          <button
-            type="button"
-            onClick={handleDemoLogin}
-            className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200/90 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs active:scale-95"
-          >
-            <Zap className="w-3.5 h-3.5 text-amber-500" />
-            <span>Fill Demo</span>
-          </button>
+          <div className="text-[11px] text-slate-500 font-medium">
+            Password: <code className="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-slate-700">Owner@123456</code>
+          </div>
         </div>
 
         {/* Error message */}

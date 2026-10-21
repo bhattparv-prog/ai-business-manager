@@ -39,6 +39,22 @@ async function main() {
     console.log("Created initial Owner user: owner@business.local / Owner@123456");
   }
 
+  // 2b. Create Parv Account if not exists
+  const parvEmail = "upaadhya1@gmail.com";
+  let parv = await prisma.user.findUnique({ where: { email: parvEmail } });
+  if (!parv) {
+    const passwordHash = await bcrypt.hash("Owner@123456", 10);
+    parv = await prisma.user.create({
+      data: {
+        email: parvEmail,
+        name: "Parv Bhatt",
+        role: "OWNER",
+        passwordHash,
+      },
+    });
+    console.log("Created Parv user: upaadhya1@gmail.com / Owner@123456");
+  }
+
   // 3. Create Sample Configurable Collections if none exist for owner
   const existingCols = await prisma.collectionDefinition.count({ where: { userId: owner.id } });
   if (existingCols === 0) {
