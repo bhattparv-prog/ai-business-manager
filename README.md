@@ -3,7 +3,6 @@
 An independent, production-ready **Personal AI Business Manager** built with **Next.js 15 (App Router)**, **TypeScript**, **Tailwind CSS**, and **Prisma ORM**. It features a modern **White & Orange luxury mobile aesthetic**, multi-tenant private workspaces, live Google Sheets streaming, grounded AI assistant, and Progressive Web App (PWA) mobile installation.
 
 ---
-
 ## 📱 How to Download / Install on Mobile Phone (PWA)
 
 Once deployed to Vercel (or any HTTPS domain):
