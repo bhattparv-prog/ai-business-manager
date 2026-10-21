@@ -8,6 +8,12 @@ const __dirname = path.dirname(__filename);
 const nextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: __dirname,
+  allowedDevOrigins: [
+    "192.168.1.6:3005",
+    "192.168.1.6",
+    "localhost:3005",
+    "localhost",
+  ],
 };
 
 export default nextConfig;

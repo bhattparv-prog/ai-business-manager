@@ -838,7 +838,7 @@ export default function DashboardClient() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
             <h3 className="text-xs font-bold text-orange-400 uppercase tracking-wider">
-              Grounded AI Business Manager
+              InsightIQ AI Executive Assistant
             </h3>
           </div>
           <p className="text-sm font-bold text-white mt-1">

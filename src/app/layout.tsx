@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 export const metadata: Metadata = {
-  title: "AI Business Manager",
-  description: "Personal AI Business Manager & Real-Time Automation Assistant",
+  title: "InsightIQ — Personal AI Business Manager",
+  description: "InsightIQ - Personal AI Business Manager & Real-Time Automation Assistant",
   manifest: "/manifest.json",
   icons: {
     icon: "/favicon.png",
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "AI Business Manager",
+    title: "InsightIQ",
   },
 };
 
@@ -38,6 +39,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased selection:bg-orange-500/20 selection:text-orange-700 min-h-screen flex flex-col bg-[#f8fafc] text-slate-800">
         <ServiceWorkerRegister />
+        <PWAInstallPrompt />
         {children}
       </body>
     </html>

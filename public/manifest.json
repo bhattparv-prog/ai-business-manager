@@ -1,21 +1,38 @@
 {
-  "name": "AI Business Manager",
-  "short_name": "AIManager",
-  "description": "Personal AI Business Manager & Real-Time Automation Assistant",
-  "start_url": "/dashboard",
+  "id": "/",
+  "name": "InsightIQ",
+  "short_name": "InsightIQ",
+  "description": "InsightIQ - Personal AI Business Manager & Real-Time Automation Assistant",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ea580c",
+  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/icons/icon-192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

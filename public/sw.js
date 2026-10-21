@@ -1,4 +1,6 @@
-// Service Worker for AI Business Manager Mobile Push & PWA
+// Service Worker for InsightIQ Mobile Push & PWA
+const CACHE_NAME = "insightiq-cache-v1";
+
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
@@ -7,12 +9,26 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// Fetch event listener to fulfill PWA installation criteria
+self.addEventListener("fetch", (event) => {
+  // Let the browser handle standard requests; fallback to cache if available
+  if (event.request.method === "GET") {
+    event.respondWith(
+      fetch(event.request).catch(async () => {
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+        return new Response("Offline", { status: 503, statusText: "Offline" });
+      })
+    );
+  }
+});
+
 self.addEventListener("push", (event) => {
   if (!event.data) return;
 
   try {
     const data = event.data.json();
-    const title = data.title || "AI Business Manager Alert";
+    const title = data.title || "InsightIQ Alert";
     const options = {
       body: data.body || "New update available.",
       icon: data.icon || "/icons/icon-192x192.png",

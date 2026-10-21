@@ -49,7 +49,7 @@ export default function Sidebar({ userRole = "OWNER", unreadCount = 0 }: Sidebar
         <div className="w-11 h-11 rounded-2xl bg-orange-50 border border-orange-100 p-1 flex items-center justify-center shadow-sm">
           <Image
             src="/logo.png"
-            alt="AI Business Manager"
+            alt="InsightIQ"
             width={38}
             height={38}
             className="rounded-xl object-contain"
@@ -58,7 +58,7 @@ export default function Sidebar({ userRole = "OWNER", unreadCount = 0 }: Sidebar
         </div>
         <div>
           <h1 className="font-bold text-slate-900 tracking-tight text-base leading-snug">
-            AI Manager
+            InsightIQ
           </h1>
           <p className="text-xs text-orange-600 font-semibold">Personal Assistant</p>
         </div>

@@ -168,7 +168,7 @@ export async function askAiAssistant({
   // If Gemini API key is configured, call Google Gemini API
   if (apiKey) {
     try {
-      const systemInstruction = `You are a Personal AI Business Manager & Executive Assistant.
+      const systemInstruction = `You are InsightIQ, a Personal AI Business Manager & Executive Assistant.
 You have access to the user's real business data provided below.
 Rules:
 1. Always base answers strictly on the verified data in the context.
