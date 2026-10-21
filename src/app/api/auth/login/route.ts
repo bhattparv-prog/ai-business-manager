@@ -15,8 +15,18 @@ export async function POST(req: Request) {
       where: { email: email.toLowerCase().trim() },
     });
 
-    if (!user || !user.active) {
-      return NextResponse.json({ error: "Invalid credentials or inactive account" }, { status: 401 });
+    if (!user) {
+      return NextResponse.json(
+        { error: "Account not found for this email. Please tap 'Sign up' below to create your account." },
+        { status: 404 }
+      );
+    }
+
+    if (!user.active) {
+      return NextResponse.json(
+        { error: "Your account is deactivated. Please contact support." },
+        { status: 403 }
+      );
     }
 
     const isValid = await verifyPassword(password, user.passwordHash);
