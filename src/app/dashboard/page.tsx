@@ -1,10 +1,13 @@
 import AppLayout from "@/components/AppLayout";
 import DashboardClient from "./DashboardClient";
+import { getSession } from "@/lib/auth";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await getSession();
+
   return (
     <AppLayout>
-      <DashboardClient />
+      <DashboardClient initialUser={session} />
     </AppLayout>
   );
 }

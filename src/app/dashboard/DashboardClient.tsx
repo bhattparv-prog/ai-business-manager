@@ -32,7 +32,11 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-export default function DashboardClient() {
+export default function DashboardClient({
+  initialUser,
+}: {
+  initialUser?: { name: string; email: string; role: string } | null;
+} = {}) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -84,7 +88,7 @@ export default function DashboardClient() {
     }
   }
 
-  const user = data?.user || { name: "Business Owner", email: "", role: "OWNER" };
+  const user = data?.user || initialUser || { name: "Parv Bhatt", email: "upaadhya1@gmail.com", role: "OWNER" };
   const userInitials = user.name
     ? user.name
         .split(" ")

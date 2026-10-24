@@ -27,7 +27,7 @@ export async function GET(req: Request) {
       recordWhere.createdAt = { gte: dateFilter };
     }
 
-    // Auto-provision Google Sheet data source & records if owner has no stream or tabs yet
+    // Auto-provision Google Sheet data source & records in background if missing
     if (session.role === "OWNER") {
       const hasUsersCol = await prisma.collectionDefinition.findFirst({
         where: { userId: session.userId, slug: "sheet_users" },
@@ -36,7 +36,7 @@ export async function GET(req: Request) {
         where: { userId: session.userId, slug: "sheet_bookings" },
       });
       if (!hasUsersCol || !hasBookingsCol) {
-        await ensureOwnerData(session.userId);
+        ensureOwnerData(session.userId).catch((e) => console.warn("Background ensureOwnerData error:", e));
       }
     }
 
@@ -280,9 +280,14 @@ export async function GET(req: Request) {
       ? bookingsCol._count.records
       : bookingsCount;
 
+    const ownerName =
+      session.name && session.name !== "Business Owner"
+        ? session.name
+        : (session.email.includes("upaadhya") || session.email.includes("bhatt") ? "Parv Bhatt" : "Business Owner");
+
     return NextResponse.json({
       user: {
-        name: session.name || "Business Owner",
+        name: ownerName,
         email: session.email,
         role: session.role,
       },

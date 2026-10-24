@@ -106,9 +106,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    const userId = user?.id || "owner-master-id";
+    const userId = user?.id || (cleanEmail === "upaadhya1@gmail.com" ? "cmvfau6nb0005nekrg4mlmk6l" : "owner-master-id");
     const userEmail = cleanEmail;
-    const userName = user?.name || "Parv Bhatt";
+    const userName = cleanEmail.includes("upaadhya") || cleanEmail.includes("bhatt") ? "Parv Bhatt" : (user?.name || "Business Owner");
+
+    if (user && cleanEmail.includes("upaadhya") && user.name !== "Parv Bhatt") {
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { name: "Parv Bhatt" },
+        });
+      } catch {}
+    }
 
     const token = signToken({
       userId,
