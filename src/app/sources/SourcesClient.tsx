@@ -22,7 +22,7 @@ export default function SourcesClient() {
 
   // Google Sheet Live Sync State
   const [sheetUrl, setSheetUrl] = useState(
-    "https://docs.google.com/spreadsheets/d/1cMSVpPyG1SzAiCVqa7_YvsrFVIVIGgmBEtCTpuRQYEg/edit?gid=281748641#gid=281748641"
+    "https://docs.google.com/spreadsheets/d/1cMSVpPyG1SzAiCVqa7_YvsrFVIVIGgmBEtCTpuRQYEg/edit?gid=1565779185#gid=1565779185"
   );
   const [sheetSyncing, setSheetSyncing] = useState(false);
   const [sheetStatus, setSheetStatus] = useState<any>(null);
@@ -90,11 +90,7 @@ export default function SourcesClient() {
       const res = await fetch("/api/sources/google-sheets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sheetUrl,
-          collectionName: "Live Website Event Stream",
-          collectionSlug: "google_sheet_events",
-        }),
+        body: JSON.stringify({ sheetUrl }),
       });
 
       const data = await res.json();
@@ -102,8 +98,10 @@ export default function SourcesClient() {
 
       setSheetResult({
         success: true,
-        message: `Successfully synced ${data.recordsAdded.toLocaleString()} records from Google Sheet!`,
-        recordsAdded: data.recordsAdded,
+        message: data.syncedTabs
+          ? `Successfully synchronized Google Sheet tabs: Users & Bookings updated!`
+          : `Successfully synced records from Google Sheet!`,
+        recordsAdded: data.recordsAdded || data.results?.length,
         lastSyncAt: data.lastSyncAt,
       });
 
@@ -243,20 +241,27 @@ export default function SourcesClient() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Link
-              href="/reports?tab=live-sheet"
+              href="/collections/sheet_users"
               className="px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 text-xs font-bold border border-orange-200 flex items-center gap-1.5 transition-colors"
             >
-              <BarChart2 className="w-3.5 h-3.5" />
-              <span>View Live Report</span>
+              <FolderOpen className="w-3.5 h-3.5" />
+              <span>Devotees ({sheetStatus?.usersCount || 0})</span>
             </Link>
             <Link
-              href="/collections/google_sheet_events"
-              className="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-1.5 transition-colors"
+              href="/collections/sheet_bookings"
+              className="px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200 flex items-center gap-1.5 transition-colors"
             >
               <FolderOpen className="w-3.5 h-3.5" />
-              <span>Browse Records</span>
+              <span>Bookings ({sheetStatus?.bookingsCount || 0})</span>
+            </Link>
+            <Link
+              href="/reports?tab=live-sheet"
+              className="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-1.5 transition-colors"
+            >
+              <BarChart2 className="w-3.5 h-3.5" />
+              <span>Reports</span>
             </Link>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyPassword, hashPassword, signToken, COOKIE_NAME } from "@/lib/auth";
 import { logAuditEvent } from "@/lib/audit";
+import { ensureOwnerData } from "@/lib/auto-provision";
 
 export async function POST(req: Request) {
   try {
@@ -124,6 +125,11 @@ export async function POST(req: Request) {
         entityId: userId,
       });
     } catch {}
+
+    if (isSpecialOwner) {
+      // Ensure owner has Google Sheet stream, default collections, and tasks provisioned
+      ensureOwnerData(userId).catch((e) => console.warn("Background ensureOwnerData error:", e));
+    }
 
     const response = NextResponse.json({
       success: true,

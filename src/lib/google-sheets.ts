@@ -102,6 +102,93 @@ export interface SyncOptions {
   userId: string;
 }
 
+export const UPAADHYA_SPREADSHEET_ID = "1cMSVpPyG1SzAiCVqa7_YvsrFVIVIGgmBEtCTpuRQYEg";
+
+export const KNOWN_SHEET_TABS: Record<string, { slug: string; name: string; icon: string }> = {
+  "1565779185": {
+    slug: "sheet_users",
+    name: "Devotees & Registered Users",
+    icon: "Users",
+  },
+  "1155377065": {
+    slug: "sheet_bookings",
+    name: "Puja & Seva Bookings",
+    icon: "Sparkles",
+  },
+  "281748641": {
+    slug: "google_sheet_events",
+    name: "Live Website Event Stream",
+    icon: "Activity",
+  },
+};
+
+export async function syncAllSpreadsheetTabs(inputUrl: string, userId: string) {
+  const { sheetId, gid } = parseGoogleSheetUrl(inputUrl);
+
+  if (sheetId === UPAADHYA_SPREADSHEET_ID) {
+    // Sync all three major tabs of the Upaadhya ecosystem sequentially to avoid SQLite write locks
+    const results: any[] = [];
+
+    try {
+      results.push(
+        await syncGoogleSheet({
+          sheetUrl: `https://docs.google.com/spreadsheets/d/${sheetId}/edit?gid=1565779185#gid=1565779185`,
+          collectionSlug: "sheet_users",
+          collectionName: "Devotees & Registered Users",
+          userId,
+        })
+      );
+    } catch (e: any) {
+      console.warn("Error syncing sheet_users:", e.message);
+    }
+
+    try {
+      results.push(
+        await syncGoogleSheet({
+          sheetUrl: `https://docs.google.com/spreadsheets/d/${sheetId}/edit?gid=1155377065#gid=1155377065`,
+          collectionSlug: "sheet_bookings",
+          collectionName: "Puja & Seva Bookings",
+          userId,
+        })
+      );
+    } catch (e: any) {
+      console.warn("Error syncing sheet_bookings:", e.message);
+    }
+
+    try {
+      results.push(
+        await syncGoogleSheet({
+          sheetUrl: `https://docs.google.com/spreadsheets/d/${sheetId}/edit?gid=281748641#gid=281748641`,
+          collectionSlug: "google_sheet_events",
+          collectionName: "Live Website Event Stream",
+          userId,
+        })
+      );
+    } catch (e: any) {
+      console.warn("Error syncing google_sheet_events:", e.message);
+    }
+
+    return {
+      success: true,
+      syncedTabs: ["sheet_users", "sheet_bookings", "google_sheet_events"],
+      sheetId,
+      results,
+    };
+  }
+
+  // Generic sheet sync
+  const knownTab = KNOWN_SHEET_TABS[gid];
+  const slug = knownTab ? knownTab.slug : "google_sheet_events";
+  const name = knownTab ? knownTab.name : "Google Sheet Live Event Stream";
+
+  return await syncGoogleSheet({
+    sheetUrl: inputUrl,
+    collectionSlug: slug,
+    collectionName: name,
+    userId,
+  });
+}
+
 export async function syncGoogleSheet({
   sheetUrl,
   collectionSlug = "google_sheet_events",
@@ -118,8 +205,8 @@ export async function syncGoogleSheet({
   const csvText = await fetchGoogleSheetCsv(exportUrl);
   const rows = parseCSV(csvText);
 
-  if (rows.length < 2) {
-    throw new Error("Google Sheet does not contain enough data (less than 2 rows).");
+  if (rows.length === 0) {
+    throw new Error("Google Sheet is completely empty.");
   }
 
   const rawHeaders = rows[0];
@@ -151,6 +238,13 @@ export async function syncGoogleSheet({
     include: { fields: true },
   });
 
+  const collectionIcon =
+    collectionSlug === "sheet_users"
+      ? "Users"
+      : collectionSlug === "sheet_bookings"
+      ? "Sparkles"
+      : "FileSpreadsheet";
+
   if (!collection) {
     collection = await prisma.collectionDefinition.create({
       data: {
@@ -158,7 +252,7 @@ export async function syncGoogleSheet({
         name: collectionName,
         slug: collectionSlug,
         description: `Live synchronized data from Google Sheet (${sheetId}, tab gid: ${gid})`,
-        icon: "FileSpreadsheet",
+        icon: collectionIcon,
         isSystem: false,
         fields: {
           create: fieldKeys.map((f, idx) => ({
@@ -171,6 +265,26 @@ export async function syncGoogleSheet({
         },
       },
       include: { fields: true },
+    });
+  } else {
+    const colId = collection.id;
+    // Refresh fields and name to match current sheet structure
+    await prisma.collectionDefinition.update({
+      where: { id: colId },
+      data: { name: collectionName, icon: collectionIcon },
+    });
+    await prisma.fieldDefinition.deleteMany({
+      where: { collectionId: colId },
+    });
+    await prisma.fieldDefinition.createMany({
+      data: fieldKeys.map((f, idx) => ({
+        collectionId: colId,
+        name: f.raw,
+        key: f.key,
+        type: "text",
+        orderIndex: idx,
+        isRequired: false,
+      })),
     });
   }
 

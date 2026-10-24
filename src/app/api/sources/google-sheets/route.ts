@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireOwner } from "@/lib/auth";
-import { syncGoogleSheet } from "@/lib/google-sheets";
+import { syncAllSpreadsheetTabs } from "@/lib/google-sheets";
 
 const DEFAULT_SHEET_URL =
-  "https://docs.google.com/spreadsheets/d/1cMSVpPyG1SzAiCVqa7_YvsrFVIVIGgmBEtCTpuRQYEg/edit?gid=281748641#gid=281748641";
+  "https://docs.google.com/spreadsheets/d/1cMSVpPyG1SzAiCVqa7_YvsrFVIVIGgmBEtCTpuRQYEg/edit?gid=1565779185#gid=1565779185";
 
 export async function GET() {
   try {
@@ -20,26 +20,29 @@ export async function GET() {
       },
     });
 
-    const collection = await prisma.collectionDefinition.findUnique({
-      where: {
-        userId_slug: {
-          userId: session.userId,
-          slug: "google_sheet_events",
-        },
-      },
-      include: {
-        _count: {
-          select: { records: true },
-        },
-      },
-    });
+    const [eventsCol, usersCol, bookingsCol] = await Promise.all([
+      prisma.collectionDefinition.findUnique({
+        where: { userId_slug: { userId: session.userId, slug: "google_sheet_events" } },
+        include: { _count: { select: { records: true } } },
+      }),
+      prisma.collectionDefinition.findUnique({
+        where: { userId_slug: { userId: session.userId, slug: "sheet_users" } },
+        include: { _count: { select: { records: true } } },
+      }),
+      prisma.collectionDefinition.findUnique({
+        where: { userId_slug: { userId: session.userId, slug: "sheet_bookings" } },
+        include: { _count: { select: { records: true } } },
+      }),
+    ]);
 
     return NextResponse.json({
       connected: !!dataSource,
       dataSource,
       defaultUrl: DEFAULT_SHEET_URL,
-      recordsCount: collection?._count?.records || 0,
-      collectionSlug: collection?.slug || "google_sheet_events",
+      recordsCount: eventsCol?._count?.records || 0,
+      usersCount: usersCol?._count?.records || 0,
+      bookingsCount: bookingsCol?._count?.records || 0,
+      collectionSlug: eventsCol?.slug || "google_sheet_events",
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 401 });
@@ -52,15 +55,8 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
 
     const sheetUrl = body.sheetUrl || DEFAULT_SHEET_URL;
-    const collectionName = body.collectionName || "Google Sheet Live Event Stream";
-    const collectionSlug = body.collectionSlug || "google_sheet_events";
 
-    const result = await syncGoogleSheet({
-      sheetUrl,
-      collectionSlug,
-      collectionName,
-      userId: session.userId,
-    });
+    const result = await syncAllSpreadsheetTabs(sheetUrl, session.userId);
 
     return NextResponse.json(result);
   } catch (err: any) {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { ensureOwnerData } from "@/lib/auto-provision";
 
 export async function GET(req: Request) {
   try {
@@ -24,6 +25,19 @@ export async function GET(req: Request) {
     };
     if (dateFilter) {
       recordWhere.createdAt = { gte: dateFilter };
+    }
+
+    // Auto-provision Google Sheet data source & records if owner has no stream or tabs yet
+    if (session.role === "OWNER") {
+      const hasUsersCol = await prisma.collectionDefinition.findFirst({
+        where: { userId: session.userId, slug: "sheet_users" },
+      });
+      const hasBookingsCol = await prisma.collectionDefinition.findFirst({
+        where: { userId: session.userId, slug: "sheet_bookings" },
+      });
+      if (!hasUsersCol || !hasBookingsCol) {
+        await ensureOwnerData(session.userId);
+      }
     }
 
     // 1. Total records and collections for THIS user only
@@ -83,10 +97,15 @@ export async function GET(req: Request) {
       include: { assignedTo: { select: { name: true } } },
     });
 
-    // 8. If google_sheet_events exists, get sample recent events and compute users & bookings
+    // 8. Find Google Sheet collections (Users, Bookings, Events)
+    const usersCol = collections.find((c) => c.slug === "sheet_users");
+    const bookingsCol = collections.find((c) => c.slug === "sheet_bookings");
     const sheetCol = collections.find((c) => c.slug === "google_sheet_events");
+
     let sheetStats: any = null;
     let recentSheetEvents: any[] = [];
+    let recentUsers: any[] = [];
+    let recentBookings: any[] = [];
     let uniqueUsersCount = 0;
     let bookingsCount = 0;
 
@@ -98,24 +117,78 @@ export async function GET(req: Request) {
       const lastSyncMs = googleSheetSource.lastSyncAt
         ? new Date(googleSheetSource.lastSyncAt).getTime()
         : 0;
-      // If last sync was > 30 seconds ago, trigger background sync
+      // If last sync was > 30 seconds ago, trigger background sync for all tabs
       if (nowMs - lastSyncMs > 30 * 1000) {
-        import("@/lib/google-sheets").then(({ syncGoogleSheet }) => {
+        import("@/lib/google-sheets").then(({ syncAllSpreadsheetTabs }) => {
           let cfg: any = {};
           try {
             cfg = JSON.parse(googleSheetSource.config);
           } catch {}
           const sheetUrl =
             cfg.sheetUrl ||
-            "https://docs.google.com/spreadsheets/d/1cMSVpPyG1SzAiCVqa7_YvsrFVIVIGgmBEtCTpuRQYEg/edit?gid=281748641#gid=281748641";
-          syncGoogleSheet({
-            sheetUrl,
-            collectionSlug: "google_sheet_events",
-            collectionName: "Live Website Event Stream",
-            userId: session.userId,
-          }).catch(console.error);
+            "https://docs.google.com/spreadsheets/d/1cMSVpPyG1SzAiCVqa7_YvsrFVIVIGgmBEtCTpuRQYEg/edit?gid=1565779185#gid=1565779185";
+          syncAllSpreadsheetTabs(sheetUrl, session.userId).catch(console.error);
         });
       }
+    }
+
+    // 9. Load Real Devotees / Users from sheet_users
+    if (usersCol && usersCol._count.records > 0) {
+      const recentUsersRaw = await prisma.recordItem.findMany({
+        where: { collectionId: usersCol.id },
+        take: 6,
+        orderBy: { createdAt: "desc" },
+      });
+      recentUsers = recentUsersRaw.map((r) => {
+        try {
+          const item = JSON.parse(r.data);
+          return {
+            id: r.id,
+            timestamp: item.timestamp_ist || item.timestamp || r.createdAt.toISOString(),
+            devoteeName: item.devotee_name || item.name || "Test Devotee",
+            userMobile: item.user_mobile || item.mobile || item.phone || "-",
+            email: item.email || "-",
+            gotra: item.gotra || "-",
+            verificationStatus: item.verification_status || "Verified",
+            loginSource: item.login_source || "OTP",
+            activityNotes: item.activity_notes || "Active",
+          };
+        } catch {
+          return { id: r.id, devoteeName: "Devotee", userMobile: "-", email: "-" };
+        }
+      });
+    }
+
+    // 10. Load Real Puja Bookings from sheet_bookings
+    if (bookingsCol && bookingsCol._count.records > 0) {
+      const recentBookingsRaw = await prisma.recordItem.findMany({
+        where: { collectionId: bookingsCol.id },
+        take: 6,
+        orderBy: { createdAt: "desc" },
+      });
+      recentBookings = recentBookingsRaw.map((r) => {
+        try {
+          const item = JSON.parse(r.data);
+          return {
+            id: r.id,
+            timestamp: item.timestamp_ist || item.timestamp || r.createdAt.toISOString(),
+            bookingId: item.booking_id || item.id || "BK-" + r.id.slice(-6).toUpperCase(),
+            devoteeName: item.devotee_name || item.name || "Devotee",
+            contact: item.contact_phone_email || item.phone || item.contact || "-",
+            addressVenue: item.address_venue || item.address || item.venue || "-",
+            timeMuhurat: item.time_muhurat || item.time || "-",
+            ritualDate: item.ritual_date || item.date || "-",
+            locationCity: item.location_city || item.city || item.location || "-",
+            paymentAmount: item.payment_amount || item.amount || "Paid / Confirmed",
+            servicePuja: item.service_puja || item.service || item.puja || "Vedic Seva",
+            gotra: item.gotra || "-",
+            specialNotes: item.special_notes || item.notes || "-",
+            source: item.source || "Website",
+          };
+        } catch {
+          return { id: r.id, devoteeName: "Devotee", servicePuja: "Puja Booking" };
+        }
+      });
     }
 
     if (sheetCol && sheetCol._count.records > 0) {
@@ -150,7 +223,7 @@ export async function GET(req: Request) {
         }
       });
 
-      // Calculate distinct visitors / sessions and booking intent requests
+      // Calculate distinct visitors / sessions and booking intent requests from click logs
       const allSheetRecords = await prisma.recordItem.findMany({
         where: { collection: { userId: session.userId, slug: "google_sheet_events" } },
         select: { data: true },
@@ -180,8 +253,8 @@ export async function GET(req: Request) {
 
       sheetStats = {
         totalEvents: sheetCol._count.records,
-        uniqueUsers: uniqueUsersCount,
-        totalBookings: bookingsCount,
+        uniqueUsers: usersCol?._count?.records || uniqueUsersCount,
+        totalBookings: bookingsCol?._count?.records || bookingsCount,
         hasData: true,
         lastSyncAt: googleSheetSource?.lastSyncAt || null,
       };
@@ -199,6 +272,14 @@ export async function GET(req: Request) {
       where: { userId: session.userId, status: "completed" },
     });
 
+    const finalUsersCount = usersCol && usersCol._count.records > 0
+      ? usersCol._count.records
+      : (uniqueUsersCount || 1);
+
+    const finalBookingsCount = bookingsCol && bookingsCol._count.records > 0
+      ? bookingsCol._count.records
+      : bookingsCount;
+
     return NextResponse.json({
       user: {
         name: session.name || "Business Owner",
@@ -206,8 +287,8 @@ export async function GET(req: Request) {
         role: session.role,
       },
       metrics: {
-        totalUsers: uniqueUsersCount || 1,
-        totalBookings: bookingsCount,
+        totalUsers: finalUsersCount,
+        totalBookings: finalBookingsCount,
         totalRecords,
         allTimeRecords,
         totalCollections: collections.length,
@@ -224,6 +305,8 @@ export async function GET(req: Request) {
       recentActivity,
       sheetStats,
       recentSheetEvents,
+      recentUsers,
+      recentBookings,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 401 });
