@@ -319,33 +319,38 @@ export async function syncGoogleSheet({
     });
   }
 
-  // 4. Batch sync records into RecordItem (only for this user's collection)
-  await prisma.recordItem.deleteMany({
-    where: { collectionId: collection.id },
-  });
-
+  // 4. Batch sync records atomically so concurrent queries never see 0 records
   const batchSize = 500;
   let recordsAdded = 0;
 
-  for (let i = 0; i < dataRows.length; i += batchSize) {
-    const chunk = dataRows.slice(i, i + batchSize);
-    const recordsToCreate = chunk.map((r) => {
-      const recordData: Record<string, string> = {};
-      fieldKeys.forEach((f, colIdx) => {
-        recordData[f.key] = r[colIdx] || "";
+  await prisma.$transaction(
+    async (tx) => {
+      await tx.recordItem.deleteMany({
+        where: { collectionId: collection.id },
       });
-      return {
-        collectionId: collection.id,
-        createdById: userId,
-        data: JSON.stringify(recordData),
-      };
-    });
 
-    await prisma.recordItem.createMany({
-      data: recordsToCreate,
-    });
-    recordsAdded += chunk.length;
-  }
+      for (let i = 0; i < dataRows.length; i += batchSize) {
+        const chunk = dataRows.slice(i, i + batchSize);
+        const recordsToCreate = chunk.map((r) => {
+          const recordData: Record<string, string> = {};
+          fieldKeys.forEach((f, colIdx) => {
+            recordData[f.key] = r[colIdx] || "";
+          });
+          return {
+            collectionId: collection.id,
+            createdById: userId,
+            data: JSON.stringify(recordData),
+          };
+        });
+
+        await tx.recordItem.createMany({
+          data: recordsToCreate,
+        });
+        recordsAdded += chunk.length;
+      }
+    },
+    { timeout: 30000 }
+  );
 
   const now = new Date();
 
