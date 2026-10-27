@@ -16,11 +16,11 @@ export default async function AppLayout({
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F5F6F7] text-[#1F2329] antialiased">
+    <div className="flex min-h-screen bg-[#f8fafc] text-slate-800">
       <Sidebar userRole={session.role} />
       <div className="flex-1 flex flex-col min-w-0">
         <Header user={session} />
-        <main className="flex-1 p-3 sm:p-5 md:p-6 max-w-[1400px] w-full mx-auto pb-24 md:pb-10">
+        <main className="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto pb-24 md:pb-12">
           {children}
         </main>
         <MobileNav />
