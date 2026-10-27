@@ -3,44 +3,71 @@
 @tailwind utilities;
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f5f6f7;
+  --foreground: #1f2329;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom warm scrollbar */
+/* Custom Lark scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #f97316;
+  background: #94a3b8;
 }
 
-/* Glassmorphism helpers for White & Orange Theme */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+/* Lark Suite Workplace OS Surfaces */
+.lark-dock {
+  background: #181b26;
 }
 
-.glass-card {
+.lark-card {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
+  border: 1px solid #dee0e3;
+  box-shadow: 0 1px 2px 0 rgba(31, 35, 41, 0.04);
+}
+
+.lark-card:hover {
+  border-color: #cfd3d8;
+  box-shadow: 0 4px 12px 0 rgba(31, 35, 41, 0.08);
+}
+
+.lark-badge-blue {
+  background-color: #ebf1ff;
+  color: #3370ff;
+  border: 1px solid rgba(51, 112, 255, 0.2);
+}
+
+.lark-badge-green {
+  background-color: #e6f9f0;
+  color: #00b365;
+  border: 1px solid rgba(0, 179, 101, 0.2);
+}
+
+.lark-badge-amber {
+  background-color: #fff5ea;
+  color: #ff7d00;
+  border: 1px solid rgba(255, 125, 0, 0.2);
+}
+
+.lark-badge-purple {
+  background-color: #f3f0ff;
+  color: #7b61ff;
+  border: 1px solid rgba(123, 97, 255, 0.2);
 }
